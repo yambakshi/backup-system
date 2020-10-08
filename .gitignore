@@ -109,7 +109,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-backup-utils-venv
 
 # Spyder project settings
 .spyderproject
@@ -131,5 +130,9 @@ dmypy.json
 
 # tmp
 tmp
+
+# auth
 authentication
+
+# vscode
 .vscode
