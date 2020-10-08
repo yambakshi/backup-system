@@ -14,8 +14,7 @@ class DownloadsService:
         self.drive = GoogleDriveService().get_drive()
         self.downloaded_files = []
         self.log_service = log_service
-        self.cache_service = CacheService(
-            CONFIG['Cache']['downloads_cache_file'])
+        self.cache_service = CacheService()
         self.query_conditions = {
             'im_in_owners': "'yambakshi@gmail.com' in owners",
             'visibility': "visibility != 'anyoneCanFind' and visibility != 'anyoneWithLink' and visibility != 'domainCanFind' and visibility != 'domainWithLink' and visibility != 'limited'",
@@ -25,6 +24,9 @@ class DownloadsService:
     def download_files_by_type(self, config: {}):
         files_counter = 0
         page_token = None
+
+        # Set cache file
+        self.cache_service.set_file(config['cache_file'])
 
         # Create tmp folder for the downloads
         shutil.rmtree(r'tmp')
@@ -43,6 +45,9 @@ class DownloadsService:
         self.log_service.log(f"{files_counter} files downloaded")
 
     def download_files(self, config: {}, page_size):
+        # Set cache file
+        self.cache_service.set_file(config['cache_file'])
+
         files_query = f"mimeType='{config['drive_file_type']}' and {self.query_conditions['im_in_owners']} and {self.query_conditions['not_in_trash']}"
         response = self.drive.files().list(pageSize=page_size,
                                            q=files_query,
