@@ -1,6 +1,7 @@
 import os
 import io
 import shutil
+from copy import deepcopy
 from pathlib import Path
 from datetime import datetime
 from .google_drive_service import GoogleDriveService
@@ -21,32 +22,27 @@ class DownloadsService:
             'not_in_trash': "trashed = false"
         }
 
-    def download_files_by_type(self, config: {}):
-        files_counter = 0
-        page_token = None
+    def download_files_by_type(self, config: {}, use_cache: bool):
+        self.log_service.log(f"Downloading Google Drive {config['drive_file_type']} files")
 
         # Set cache file
-        self.cache_service.set_file(config['cache_file'])
+        self.cache_service.set_file(config['cache_file'], use_cache)
+
+        if use_cache:
+            self.__load_cache(config)
+            self.log_service.log(f"{len(self.downloaded_files)} already downloaded")
+        else:
+            self.__download_all_files(config)
+            self.log_service.log(f"{len(self.downloaded_files)} files downloaded")
+
+        return deepcopy(self.downloaded_files)
+
+    def download_files(self, config: {}, use_cache: bool, page_size: int):
+        # Set cache file
+        self.cache_service.set_file(config['cache_file'], use_cache)
 
         # Create tmp folder for the downloads
-        shutil.rmtree(r'tmp')
-        if not os.path.exists('./tmp'):
-            os.makedirs('./tmp')
-
-        # Iterate all file pages
-        while True:
-            response, page_files_counter = self.__download_all_files_in_page(
-                config, page_token)
-            files_counter += page_files_counter
-            page_token = response.get('nextPageToken', None)
-            if page_token is None:
-                break
-
-        self.log_service.log(f"{files_counter} files downloaded")
-
-    def download_files(self, config: {}, page_size):
-        # Set cache file
-        self.cache_service.set_file(config['cache_file'])
+        self.__reset_tmp_folder()
 
         files_query = f"mimeType='{config['drive_file_type']}' and {self.query_conditions['im_in_owners']} and {self.query_conditions['not_in_trash']}"
         response = self.drive.files().list(pageSize=page_size,
@@ -54,8 +50,22 @@ class DownloadsService:
                                            spaces='drive',
                                            fields="*").execute()
 
-        files_counter = self.__process_response(config, response)
-        self.log_service.log(f"{files_counter} files downloaded")
+        self.__process_response(config, response)
+        self.log_service.log(f"{len(self.downloaded_files)} files downloaded")
+        return deepcopy(self.downloaded_files)
+
+    def __download_all_files(self, config):
+        page_token = None
+
+        # Create tmp folder for the downloads
+        self.__reset_tmp_folder()
+
+        # Iterate all file pages
+        while True:
+            response = self.__download_all_files_in_page(config, page_token)
+            page_token = response.get('nextPageToken', None)
+            if page_token is None:
+                break
 
     def __download_all_files_in_page(self, config: {}, page_token):
         # files_query = f"mimeType='{config['drive_file_type']}' and (({im_in_owners}) and ({visibility})) and {not_in_trash}"
@@ -66,12 +76,10 @@ class DownloadsService:
                                            fields="*",
                                            pageToken=page_token).execute()
 
-        page_files_counter = self.__process_response(config, response)
-        return response, page_files_counter
+        self.__process_response(config, response)
+        return response
 
     def __process_response(self, config, response):
-        files_counter = 0
-
         for file in response.get('files', []):
             # Get file info
             file_id = file.get('id')
@@ -100,9 +108,6 @@ class DownloadsService:
                     '/'.join(file_path_and_name.split('/')[1:]))
                 self.log_service.log(
                     f"{file_id} - {download_progress} - {file_path_and_name}")
-                files_counter += 1
-
-        return files_counter
 
     def __query_file_path(self, driver_service, parent_directory_id: str, file_path):
         parent_directory = driver_service.files().get(
@@ -132,3 +137,12 @@ class DownloadsService:
             file_path = f"{directory['name']}/{file_path}"
 
         return f"{file_path}"
+
+    def __load_cache(self, config):
+        cache = self.cache_service.read()
+        self.downloaded_files = cache.split('\n')[:-1]
+
+    def __reset_tmp_folder(self):
+        shutil.rmtree(r'tmp')
+        if not os.path.exists('./tmp'):
+            os.makedirs('./tmp')

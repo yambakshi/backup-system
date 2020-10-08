@@ -1,5 +1,6 @@
 import os
 import io
+from copy import deepcopy
 from datetime import datetime
 from .cache_service import CacheService
 from config.config import CONFIG
@@ -11,13 +12,20 @@ class FilterService:
         self.log_service = log_service
         self.cache_service = CacheService()
 
-    def filter_files_by_types(self, config, excluded_paths=[]):
+    def filter_files_by_types(self, config: {}, use_cache: bool, excluded_paths: []):
+        self.log_service.log(f"Filtering files in {config['root_directory_path']}")
         self.filtered_files.clear()
-        self.cache_service.set_file(config['cache_file'])
-        self.__iterate_files(config, excluded_paths)
-        self.log_service.log(f"{len(self.filtered_files)} files filtered")
+        self.cache_service.set_file(config['cache_file'], use_cache)
+        if use_cache:
+            self.__load_cache(config)
+            self.log_service.log(f"{len(self.filtered_files)} already filtered")
+        else:
+            self.__iterate_files(config, excluded_paths)
+            self.log_service.log(f"{len(self.filtered_files)} files filtered")
 
-    def __iterate_files(self, config, excluded_paths=[]):
+        return deepcopy(self.filtered_files)
+
+    def __iterate_files(self, config: {}, excluded_paths=[]):
         if config['root_directory_path'] in excluded_paths:
             return
 
@@ -32,3 +40,7 @@ class FilterService:
                 self.filtered_files.append('/'.join(file_path.split('/')[2:]))
                 self.cache_service.write('/'.join(file_path.split('/')[2:]))
                 self.log_service.log(f"Filtered file: {file_path}")
+
+    def __load_cache(self, config):
+        cache = self.cache_service.read()
+        self.filtered_files = cache.split('\n')[:-1]
