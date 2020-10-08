@@ -131,6 +131,12 @@ dmypy.json
 # tmp
 tmp
 
+# cache
+cache
+
+# logs
+logs
+
 # auth
 authentication
 

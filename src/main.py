@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from services.log_service import LogService
 from services.downloads_service import DownloadsService
@@ -6,28 +5,36 @@ from services.filter_service import FilterService
 from config.config import CONFIG
 
 
-def init_folders():    
-    # Create tmp folder for the downloads
-    if not os.path.exists('./tmp'):
-        os.makedirs('./tmp')
-
-
 def update_local_files():
     log_service = LogService()
-    downloads_service = DownloadsService()
+    downloads_service = DownloadsService(log_service)
     filter_service = FilterService(log_service)
 
-    filter_service.filter_files_by_types(CONFIG['Microsoft Excel']['filter'])
-    # downloads_service.download_files_by_type(CONFIG['Google Sheets']['download'])
+    # Filter Microsoft Excel files in local machine
+    # filter_service.filter_files_by_types(CONFIG['Microsoft Excel']['filter'], [
+    #                                      r'D:/Yam Bakshi/Careers/Hi-Tech/Portfolio/Python/Backup Utils/tmp'])
 
-    for file_path in downloads_service.files_paths:
-        if not file_path in filter_service.files_paths:
+    # Download all Google Sheet documents from Google Drive
+    downloads_service.download_files_by_type(
+        CONFIG['Google Sheets']['download'])
+
+    # Download 3 Google Sheet documents from Google Drive
+    # downloads_service.download_files(CONFIG['Google Sheets']['download'], 3)
+
+    missing_files_counter = 0
+    for file_path in downloads_service.downloaded_files:
+        if not file_path in filter_service.filtered_files:
+            missing_files_counter += 0
             missing_file_message = f"Downloaded file is missing from local machine: {file_path}"
             log_service.log(missing_file_message)
 
+    if missing_files_counter == 0:
+        log_service.log('All downloaded files paths are found in local machine')
+    else:
+        log_service.log(f"{missing_files_counter} downloaded files are missing in local machine")
+
 
 def main():
-    init_folders()
     update_local_files()
 
 

@@ -50,6 +50,10 @@ CONFIG = {
             'file_extensions': ['xlsx']
         }
     },
+    'Cache': {
+        'filter_cache_file': r'filter.cache',
+        'downloads_cache_file': r'downloads.cache'
+    },
     'Log': {
         'log_file': r'backup.log'
     }
