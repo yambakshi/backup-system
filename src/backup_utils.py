@@ -31,18 +31,18 @@ class BackupUtils:
         missing_files = self.__get_missing_files(
             local_microsoft_excel_files, drive_google_sheet_files)
 
-        for missing_file in missing_files:
-            parent_folder = '/'.join(missing_file.split('/')[:-1])
-            local_path_to_folder = f"D:/Yam Bakshi/{parent_folder}"
-            if not os.path.isdir(local_path_to_folder):
-                Path(parent_folder).mkdir(parents=True, exist_ok=True)
+        # for missing_file in missing_files:
+        #     parent_folder = '/'.join(missing_file.split('/')[:-1])
+        #     local_path_to_folder = f"D:/Yam Bakshi/{parent_folder}"
+        #     if not os.path.isdir(local_path_to_folder):
+        #         Path(parent_folder).mkdir(parents=True, exist_ok=True)
 
     def __get_missing_files(self, local_files, downloaded_files):
         missing_files = []
         for file_path in downloaded_files:
             if not file_path in local_files:
                 missing_files.append(file_path)
-                missing_file_message = f"Downloaded file is missing from local machine: {file_path}"
+                missing_file_message = f"Downloaded file is missing from local machine: '{file_path}'"
                 self.log_service.log(missing_file_message)
 
         if len(missing_files) == 0:

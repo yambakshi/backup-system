@@ -24,7 +24,7 @@ class DownloadsService:
 
     def download_files_by_type(self, config: {}, use_cache: bool):
         self.log_service.log(
-            f"Downloading Google Drive {config['drive_file_type']} files")
+            f"Downloading '{config['drive_file_type']}' files from 'Google Drive'")
 
         # Set cache file
         self.cache_service.init(config['cache_file'], use_cache)
@@ -32,11 +32,11 @@ class DownloadsService:
         if use_cache:
             self.__load_cache(config)
             self.log_service.log(
-                f"{len(self.downloaded_files)} already downloaded")
+                f"{len(self.downloaded_files)} '{config['drive_file_type']}' files loaded from 'cache/{config['cache_file']}'")
         else:
             self.__download_all_files(config)
             self.log_service.log(
-                f"{len(self.downloaded_files)} files downloaded")
+                f"{len(self.downloaded_files)} '{config['drive_file_type']}' files downloaded from 'Google Drive'")
 
         return deepcopy(self.downloaded_files)
 

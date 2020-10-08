@@ -14,16 +14,18 @@ class FilterService:
 
     def get_files_by_types(self, config: {}, use_cache: bool, excluded_paths: []):
         self.log_service.log(
-            f"Filtering files in {config['root_directory_path']}")
+            f"Searching '{','.join(config['file_extensions'])}' files in '{config['root_directory_path']}'")
         self.filtered_files.clear()
         self.cache_service.init(config['cache_file'], use_cache)
+
         if use_cache:
             self.__load_cache(config)
             self.log_service.log(
-                f"{len(self.filtered_files)} already filtered")
+                f"{len(self.filtered_files)} '{','.join(config['file_extensions'])}' files loaded from 'cache/{config['cache_file']}'")
         else:
             self.__iterate_files(config, excluded_paths)
-            self.log_service.log(f"{len(self.filtered_files)} files filtered")
+            self.log_service.log(
+                f"{len(self.filtered_files)} '{','.join(config['file_extensions'])}' files found in '{config['root_directory_path']}'")
 
         return deepcopy(self.filtered_files)
 
@@ -41,7 +43,7 @@ class FilterService:
             if extension in config['file_extensions']:
                 self.filtered_files.append('/'.join(file_path.split('/')[2:]))
                 self.cache_service.write('/'.join(file_path.split('/')[2:]))
-                self.log_service.log(f"Filtered file: {file_path}")
+                self.log_service.log(f"Filtered file: '{file_path}'")
 
     def __load_cache(self, config):
         cache = self.cache_service.read()
