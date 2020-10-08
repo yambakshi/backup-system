@@ -1,5 +1,3 @@
-ROOT = r'D:/Yam Bakshi/Careers/Hi-Tech/Portfolio/Python/Backup Utils'
-
 CONFIG = {
     'Google Docs': {
         'filter': {

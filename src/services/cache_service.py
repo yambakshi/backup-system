@@ -1,4 +1,5 @@
-import io, os
+import io
+import os
 from pathlib import Path
 from datetime import datetime
 from config.config import CONFIG
@@ -9,7 +10,7 @@ class CacheService:
         if not os.path.exists('./cache'):
             Path(r'cache').mkdir(parents=True, exist_ok=True)
 
-    def set_file(self, filename, use_cache=False):
+    def init(self, filename, use_cache=False):
         current_date = datetime.today().strftime('%Y-%m-%d')
         self.cache_file = f"cache/{current_date} - {filename}"
         if not use_cache:

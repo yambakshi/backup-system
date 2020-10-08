@@ -1,4 +1,6 @@
-import os, io, shutil
+import os
+import io
+import shutil
 from copy import deepcopy
 from pathlib import Path
 from datetime import datetime
@@ -21,23 +23,26 @@ class DownloadsService:
         }
 
     def download_files_by_type(self, config: {}, use_cache: bool):
-        self.log_service.log(f"Downloading Google Drive {config['drive_file_type']} files")
+        self.log_service.log(
+            f"Downloading Google Drive {config['drive_file_type']} files")
 
         # Set cache file
-        self.cache_service.set_file(config['cache_file'], use_cache)
+        self.cache_service.init(config['cache_file'], use_cache)
 
         if use_cache:
             self.__load_cache(config)
-            self.log_service.log(f"{len(self.downloaded_files)} already downloaded")
+            self.log_service.log(
+                f"{len(self.downloaded_files)} already downloaded")
         else:
             self.__download_all_files(config)
-            self.log_service.log(f"{len(self.downloaded_files)} files downloaded")
+            self.log_service.log(
+                f"{len(self.downloaded_files)} files downloaded")
 
         return deepcopy(self.downloaded_files)
 
     def download_files(self, config: {}, use_cache: bool, page_size: int):
         # Set cache file
-        self.cache_service.set_file(config['cache_file'], use_cache)
+        self.cache_service.init(config['cache_file'], use_cache)
 
         # Create tmp folder for the downloads
         self.__reset_tmp_folder()
@@ -60,22 +65,16 @@ class DownloadsService:
 
         # Iterate all file pages
         while True:
-            response = self.__download_all_files_in_page(config, page_token)
+            files_query = f"mimeType='{config['drive_file_type']}' and {self.query_conditions['im_in_owners']} and {self.query_conditions['not_in_trash']}"
+            response = self.drive.files().list(q=files_query,
+                                               spaces='drive',
+                                               fields="*",
+                                               pageToken=page_token).execute()
+
+            self.__process_response(config, response)
             page_token = response.get('nextPageToken', None)
             if page_token is None:
                 break
-
-    def __download_all_files_in_page(self, config: {}, page_token):
-        # files_query = f"mimeType='{config['drive_file_type']}' and (({im_in_owners}) and ({visibility})) and {not_in_trash}"
-        files_query = f"mimeType='{config['drive_file_type']}' and {self.query_conditions['im_in_owners']} and {self.query_conditions['not_in_trash']}"
-
-        response = self.drive.files().list(q=files_query,
-                                           spaces='drive',
-                                           fields="*",
-                                           pageToken=page_token).execute()
-
-        self.__process_response(config, response)
-        return response
 
     def __process_response(self, config, response):
         for file in response.get('files', []):
