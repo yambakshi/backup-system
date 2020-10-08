@@ -1,6 +1,4 @@
-import os
-import io
-import shutil
+import os, io, shutil
 from copy import deepcopy
 from pathlib import Path
 from datetime import datetime

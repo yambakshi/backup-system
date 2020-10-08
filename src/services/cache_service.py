@@ -1,5 +1,4 @@
-import io
-import os
+import io, os
 from pathlib import Path
 from datetime import datetime
 from config.config import CONFIG

@@ -46,7 +46,7 @@ CONFIG = {
     },
     'Microsoft Word': {
         'filter': {
-            'root_directory_path': f"{ROOT}/tmp",
+            'root_directory_path': r'D:/Yam Bakshi',
             'file_extensions': ['docx'],
             'cache_file': r'microsoft-word.filter.cache',
         }
