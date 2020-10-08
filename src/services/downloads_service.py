@@ -8,7 +8,7 @@ from googleapiclient.http import MediaIoBaseDownload
 class DownloadsService:
     def __init__(self):
         self.drive = GoogleDriveService().get_drive()
-
+        self.files_paths = []
 
     def query_file_path(self, driver_service, parent_directory_id: str, file_path):
         parent_directory = driver_service.files().get(
@@ -30,7 +30,6 @@ class DownloadsService:
 
         return file_path
 
-
     def get_file_path(self, driver_service, parent_directory_id: str):
         raw_file_path = self.query_file_path(
             driver_service, parent_directory_id, [])
@@ -39,7 +38,6 @@ class DownloadsService:
             file_path = f"{directory['name']}/{file_path}"
 
         return f"{file_path}"
-
 
     def download_all_files_in_page(self, config: {}, page_token):
         im_in_owners = "'yambakshi@gmail.com' in owners"
@@ -56,7 +54,6 @@ class DownloadsService:
         page_files_counter = self.process_response(config, response)
         return response, page_files_counter
 
-
     def download_files(self, config: {}, page_size):
         im_in_owners = "'yambakshi@gmail.com' in owners"
         not_in_trash = "trashed = false"
@@ -67,16 +64,15 @@ class DownloadsService:
         open(config['log_file'], 'w').close()
 
         response = self.drive.files().list(pageSize=page_size,
-                                              q=f"mimeType='{config['drive_file_type']}' and {im_in_owners} and {not_in_trash}",
-                                              spaces='drive',
-                                              fields="*").execute()
+                                           q=f"mimeType='{config['drive_file_type']}' and {im_in_owners} and {not_in_trash}",
+                                           spaces='drive',
+                                           fields="*").execute()
 
         files_counter = self.process_response(config, response)
         with io.open(config['log_file'], "a", encoding="utf-8") as f:
             f.write(f"{files_counter} files downloaded")
 
         print(f"{files_counter} files downloaded")
-
 
     def process_response(self, config, response):
         files_counter = 0
@@ -98,7 +94,7 @@ class DownloadsService:
 
             # Download file by id
             request = self.drive.files().export_media(fileId=file_id,
-                                                         mimeType=config['download_as'])
+                                                      mimeType=config['download_as'])
             fh = io.FileIO(
                 f"tmp/{file_path}{file_name}.{config['save_as']}", 'wb')
             downloader = MediaIoBaseDownload(fh, request)
@@ -108,15 +104,17 @@ class DownloadsService:
                 download_progress = "Download %d%%" % int(
                     status.progress() * 100)
 
+                self.files_paths.append('/'.join(file_path.split('/')[-1:]))
+
                 # Print and log status
                 print(download_progress)
                 with io.open(config['log_file'], "a", encoding="utf-8") as f:
-                    f.write(f" - {download_progress} - {file_path}{file_name}.{config['save_as']}\n")
+                    f.write(
+                        f" - {download_progress} - {file_path}{file_name}.{config['save_as']}\n")
 
                 files_counter += 1
 
         return files_counter
-
 
     def download_files_by_type(self, config: {}):
         files_counter = 0

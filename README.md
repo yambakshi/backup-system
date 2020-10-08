@@ -1,7 +1,7 @@
-# backup-utils
+# Backup Utils
 Backup utilities for backing up Google Drive files and local files
 
-# CREATION
+# Setup
 1.  Open cmd
 
 2.  Navigate to projects folder
@@ -37,6 +37,6 @@ Backup utilities for backing up Google Drive files and local files
     Then activate venv by running:
     backup-utils-venv/Scripts/Activate.ps1
 
-# USEFUL COMMANDS
+# Useful commands
 Updating requirements.txt with installed pip packages (-l or --local flag to save only local packages and not global):
 pip freeze -l > requirements.txt
