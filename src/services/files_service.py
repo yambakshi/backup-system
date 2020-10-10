@@ -8,7 +8,7 @@ class FilesService:
         self.logger = logging.getLogger('backup_system')
         self.cache_service = cache_service
 
-    def get_files_by_types(self, config: {}, excluded_paths: []):
+    def get_files_by_types(self, config: {}):
         self.logger.debug(
             f"Searching '{','.join(config['file_extensions'])}' files in '{config['root_directory_path']}'")
 
@@ -17,21 +17,21 @@ class FilesService:
             self.logger.debug(
                 f"{len(files)} '{','.join(config['file_extensions'])}' files loaded from 'cache/{config['cache_file']}'")
         else:
-            files = self.__iterate_files(config, excluded_paths, [])
+            files = self.__iterate_files(config, [])
             self.logger.debug(
                 f"{len(files)} '{','.join(config['file_extensions'])}' files found in '{config['root_directory_path']}'")
 
         return files
 
-    def __iterate_files(self, config: {}, excluded_paths: [], files: []):
-        if config['root_directory_path'] in excluded_paths:
-            return files
-
+    def __iterate_files(self, config: {}, files: []):
         for filename in os.listdir(config['root_directory_path']):
+            if filename in config['excluded_directories']:
+                return files
+
             file_path = f"{config['root_directory_path']}/{filename}"
             if os.path.isdir(file_path):
                 files = self.__iterate_files(
-                    {**config, 'root_directory_path': file_path}, excluded_paths, files)
+                    {**config, 'root_directory_path': file_path}, files)
 
             extension = os.path.splitext(filename)[1][1:]
             if extension in config['file_extensions']:

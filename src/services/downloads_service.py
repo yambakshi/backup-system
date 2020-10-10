@@ -49,7 +49,7 @@ class DownloadsService:
         self.__reset_tmp_folder()
         self.cache_service.clear_cache(config['cache_file'])
 
-        # Iterate all file pages
+        # Iterate all pages
         while True:
             results = self.__search_drive(config, None, page_token)
             downloaded_files += self.__download_files(config, results)
@@ -59,10 +59,9 @@ class DownloadsService:
 
         return downloaded_files
 
-    def __download_files(self, config, response, cache_files=True):
+    def __download_files(self, config, results, cache_files=True):
         downloaded_files = []
-        for file in response.get('files', []):
-            # Get file info
+        for file in results.get('files', []):
             file_id = file.get('id')
             file_name = file.get('name')
             file_parents = file.get('parents')
@@ -103,8 +102,8 @@ class DownloadsService:
             'pageToken': page_token
         }
 
-        response = self.drive.files().list(**search_params).execute()
-        return response
+        results = self.drive.files().list(**search_params).execute()
+        return results
 
     def __query_directories_path(self, driver_service, parent_directory_id: str, file_path):
         parent_directory = driver_service.files().get(
@@ -140,6 +139,6 @@ class DownloadsService:
         return cache.split('\n')[:-1]
 
     def __reset_tmp_folder(self):
-        shutil.rmtree(r'tmp')
-        if not os.path.exists('./tmp'):
-            os.makedirs('./tmp')
+        if os.path.exists('./tmp'):
+            shutil.rmtree(r'tmp')
+        os.makedirs('./tmp')

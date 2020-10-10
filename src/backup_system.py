@@ -31,19 +31,19 @@ class BackupSystem:
 
     def update_local_files(self):
         try:
-            # Filter Microsoft Excel files in local machine
+            # Filter Microsoft Excel files on local machine
             local_microsoft_excel_files = self.files_service.get_files_by_types(
-                CONFIG['Microsoft Excel']['local'], [r'D:/Yam Bakshi/Careers/Hi-Tech/Portfolio/Python/Backup System/tmp'])
+                CONFIG['local']['Microsoft Excel'])
 
-            # Filter Google Sheet files in Google Drive Stream folder
+            # Filter Google Sheet files on Google Drive Stream folder
             drive_stream_google_sheet_files = self.files_service.get_files_by_types(
-                CONFIG['Google Sheets']['local'], [])
+                CONFIG['local']['Google Sheet'])
 
             # Download all Google Sheet documents from Google Drive
             drive_google_sheet_files = self.downloads_service.download_all_files_by_type(
-                CONFIG['Google Sheets']['drive'])
+                CONFIG['drive']['Google Sheet'])
 
-            # Get a list of files found in Google Drive but missing from local machine
+            # Get a list of files found on Google Drive but missing from local machine
             missing_files = self.__get_missing_files(
                 local_microsoft_excel_files, drive_google_sheet_files)
 

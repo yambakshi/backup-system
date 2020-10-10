@@ -1,59 +1,58 @@
 CONFIG = {
-    'Google Docs': {
-        'local': {
+    'local': {
+        'Google Doc': {
             'root_directory_path': r'G:/My Drive',
             'file_extensions': ['gdoc'],
-            'cache_file': r'google-docs.local.cache',
+            'cache_file': r'local.google-docs.cache',
+            'excluded_directories': []
         },
-        'drive': {
+        'Google Sheet': {
+            'root_directory_path': r'G:/My Drive',
+            'file_extensions': ['gsheet'],
+            'cache_file': r'local.google-sheets.cache',
+            'excluded_directories': []
+        },
+        'PDF': {
+            'root_directory_path': r'G:/My Drive',
+            'file_extensions': ['pdf'],
+            'cache_file': r'local.pdf.cache',
+            'excluded_directories': []
+        },
+        'Microsoft Word': {
+            'root_directory_path': r'D:/Yam Bakshi',
+            'file_extensions': ['docx'],
+            'cache_file': r'local.microsoft-word.cache',
+            'excluded_directories': [r'tmp']
+        },
+        'Microsoft Excel': {
+            'root_directory_path': r'D:/Yam Bakshi',
+            'file_extensions': ['xlsx'],
+            'cache_file': r'local.microsoft-excel.cache',
+            'excluded_directories': [r'tmp']
+        }
+    },
+    'drive': {
+        'Google Doc': {
             'file_type': 'application/vnd.google-apps.document',
             'download_as': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'save_as': 'docx',
             # 'download_as': 'application/pdf',
             # 'save_as': 'pdf',
-            'cache_file': r'google-docs.drive.cache',
-        }
-    },
-    'Google Sheets': {
-        'local': {
-            'root_directory_path': r'G:/My Drive',
-            'file_extensions': ['gsheet'],
-            'cache_file': r'google-sheets.local.cache',
+            'cache_file': r'drive.google-docs.cache',
         },
-        'drive': {
+        'Google Sheet': {
             'file_type': 'application/vnd.google-apps.spreadsheet',
             'download_as': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'save_as': 'xlsx',
             # 'download_as': 'application/pdf',
             # 'save_as': 'pdf',
-            'cache_file': r'google-sheets.drive.cache',
-        }
-    },
-    'Google PDFs': {
-        'local': {
-            'root_directory_path': r'G:/My Drive',
-            'file_extensions': ['pdf'],
-            'cache_file': r'google-pdf.local.cache',
+            'cache_file': r'drive.google-sheets.cache',
         },
-        'drive': {
+        'PDF': {
             'file_type': 'application/pdf',
             'download_as': 'application/pdf',
             'save_as': 'pdf',
-            'cache_file': r'google-pdf.drive.cache',
-        }
-    },
-    'Microsoft Word': {
-        'local': {
-            'root_directory_path': r'D:/Yam Bakshi',
-            'file_extensions': ['docx'],
-            'cache_file': r'microsoft-word.local.cache',
-        }
-    },
-    'Microsoft Excel': {
-        'local': {
-            'root_directory_path': r'D:/Yam Bakshi',
-            'file_extensions': ['xlsx'],
-            'cache_file': r'microsoft-excel.local.cache',
-        }
+            'cache_file': r'drive.pdf.cache',
+        },
     }
 }
