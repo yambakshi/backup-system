@@ -90,7 +90,7 @@ class DownloadsService:
                     self.cache_service.write(
                         config['cache_file'], file_path_no_root)
                 self.logger.debug(
-                    f"Downloaded {download_progress} '{file_path}' ({file_id})")
+                    f"Downloaded {download_progress} of '{file_path}' ({file_id})")
 
         return downloaded_files
 
