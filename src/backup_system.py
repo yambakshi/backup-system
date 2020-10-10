@@ -9,7 +9,7 @@ from config.config import CONFIG
 from pathlib import Path
 
 
-class BackupUtils:
+class BackupSystem:
     def __init__(self):
         self.logger = self.init_logger()
         self.cache_service = CacheService()
@@ -33,7 +33,7 @@ class BackupUtils:
         try:
             # Filter Microsoft Excel files in local machine
             local_microsoft_excel_files = self.files_service.get_files_by_types(
-                CONFIG['Microsoft Excel']['local'], [r'D:/Yam Bakshi/Careers/Hi-Tech/Portfolio/Python/Backup Utils/tmp'])
+                CONFIG['Microsoft Excel']['local'], [r'D:/Yam Bakshi/Careers/Hi-Tech/Portfolio/Python/Backup System/tmp'])
 
             # Filter Google Sheet files in Google Drive Stream folder
             drive_stream_google_sheet_files = self.files_service.get_files_by_types(

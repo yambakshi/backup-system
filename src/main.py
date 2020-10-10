@@ -1,9 +1,9 @@
-from backup_utils import BackupUtils
+from backup_system import BackupSystem
 
 
 def main():
-    backup_utils = BackupUtils()
-    backup_utils.update_local_files()
+    backup_system = BackupSystem()
+    backup_system.update_local_files()
 
 
 if __name__ == '__main__':
