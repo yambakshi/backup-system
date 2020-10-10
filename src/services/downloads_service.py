@@ -9,6 +9,7 @@ from googleapiclient.http import MediaIoBaseDownload
 
 class DownloadsService:
     def __init__(self, cache_service):
+        self.logger = logging.getLogger('backup_system')
         self.cache_service = cache_service
         self.drive = GoogleDriveService().get_drive()
         self.query_conditions = {
@@ -17,91 +18,95 @@ class DownloadsService:
             'not_in_trash': "trashed = false"
         }
 
-    def download_files_by_type(self, config: {}, use_cache: bool):
-        logging.debug(
-            f"Downloading '{config['drive_file_type']}' files from 'Google Drive'")
+    def download_all_files_by_type(self, config: {}):
+        self.logger.debug(
+            f"Downloading all '{config['file_type']}' files from 'Google Drive'")
 
-        if use_cache:
+        if self.cache_service.cache_exists(config['cache_file']):
             downloaded_files = self.__load_cache(config)
-            logging.debug(
-                f"{len(downloaded_files)} '{config['drive_file_type']}' files loaded from 'cache/{config['cache_file']}'")
+            self.logger.debug(
+                f"{len(downloaded_files)} '{config['file_type']}' files loaded from 'cache/{config['cache_file']}'")
         else:
             downloaded_files = self.__download_all_files(config)
-            logging.debug(
-                f"{len(downloaded_files)} '{config['drive_file_type']}' files downloaded from 'Google Drive'")
+            self.logger.debug(
+                f"{len(downloaded_files)} '{config['file_type']}' files downloaded from 'Google Drive'")
 
         return downloaded_files
 
-    def download_files(self, config: {}, use_cache: bool, page_size: int):
-        # Create tmp folder for the downloads
+    def download_files_by_type(self, config: {}, page_size: int):
+        self.logger.debug(
+            f"Downloading '{config['file_type']}' files from 'Google Drive'")
         self.__reset_tmp_folder()
-
-        files_query = f"mimeType='{config['drive_file_type']}' and {self.query_conditions['im_in_owners']} and {self.query_conditions['not_in_trash']}"
-        response = self.drive.files().list(pageSize=page_size,
-                                           q=files_query,
-                                           spaces='drive',
-                                           fields="*").execute()
-
-        downloaded_files = self.__process_response(config, response)
-        logging.debug(f"{len(downloaded_files)} files downloaded")
+        results = self.__search_drive(config, page_size, None)
+        downloaded_files = self.__download_files(config, results, False)
+        self.logger.debug(f"{len(downloaded_files)} files downloaded")
         return downloaded_files
 
     def __download_all_files(self, config):
         downloaded_files = []
         page_token = None
 
-        # Create tmp folder for the downloads
         self.__reset_tmp_folder()
+        self.cache_service.clear_cache(config['cache_file'])
 
         # Iterate all file pages
         while True:
-            files_query = f"mimeType='{config['drive_file_type']}' and {self.query_conditions['im_in_owners']} and {self.query_conditions['not_in_trash']}"
-            response = self.drive.files().list(q=files_query,
-                                               spaces='drive',
-                                               fields="*",
-                                               pageToken=page_token).execute()
-
-            downloaded_files += self.__process_response(config, response)
-            page_token = response.get('nextPageToken', None)
+            results = self.__search_drive(config, None, page_token)
+            downloaded_files += self.__download_files(config, results)
+            page_token = results.get('nextPageToken', None)
             if page_token is None:
                 break
 
         return downloaded_files
 
-    def __process_response(self, config, response):
+    def __download_files(self, config, response, cache_files=True):
         downloaded_files = []
         for file in response.get('files', []):
             # Get file info
             file_id = file.get('id')
             file_name = file.get('name')
             file_parents = file.get('parents')
-            file_path = self.__get_file_path(self.drive, file_parents[0])
+            file_directories_path = self.__get_file_directories_path(
+                self.drive, file_parents[0])
 
             # Create file folders by its path
-            Path(f"tmp/{file_path}").mkdir(parents=True, exist_ok=True)
+            Path(f"tmp/{file_directories_path}").mkdir(parents=True,
+                                                       exist_ok=True)
 
             # Download file by id
             request = self.drive.files().export_media(fileId=file_id,
                                                       mimeType=config['download_as'])
-            file_path_and_name = f"{file_path}{file_name}.{config['save_as']}"
-            fh = io.FileIO(f"tmp/{file_path_and_name}", 'wb')
+            file_path = f"{file_directories_path}{file_name}.{config['save_as']}"
+            fh = io.FileIO(f"tmp/{file_path}", 'wb')
             downloader = MediaIoBaseDownload(fh, request)
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                download_progress = "Download %d%%" % int(
-                    status.progress() * 100)
+                download_progress = "%d%%" % int(status.progress() * 100)
 
-                downloaded_files.append(
-                    '/'.join(file_path_and_name.split('/')[1:]))
-                self.cache_service.write(config['cache_file'],
-                                         '/'.join(file_path_and_name.split('/')[1:]))
-                logging.debug(
-                    f"{file_id} - {download_progress} - {file_path_and_name}")
+                file_path_no_root = '/'.join(file_path.split('/')[1:])
+                downloaded_files.append(file_path_no_root)
+                if cache_files:
+                    self.cache_service.write(
+                        config['cache_file'], file_path_no_root)
+                self.logger.debug(
+                    f"Downloaded {download_progress} '{file_path}' ({file_id})")
 
         return downloaded_files
 
-    def __query_file_path(self, driver_service, parent_directory_id: str, file_path):
+    def __search_drive(self, config: {}, page_size: int, page_token):
+        search_params = {
+            'pageSize': page_size,
+            'q': f"mimeType='{config['file_type']}' and {self.query_conditions['im_in_owners']} and {self.query_conditions['not_in_trash']}",
+            'spaces': 'drive',
+            'fields': '*',
+            'pageToken': page_token
+        }
+
+        response = self.drive.files().list(**search_params).execute()
+        return response
+
+    def __query_directories_path(self, driver_service, parent_directory_id: str, file_path):
         parent_directory = driver_service.files().get(
             fileId=parent_directory_id, fields='id, name, parents').execute()
         parent_directory_parents = parent_directory.get('parents')
@@ -112,7 +117,7 @@ class DownloadsService:
                 'parents': parent_directory_parents[0]
             })
 
-            return self.__query_file_path(driver_service, parent_directory_parents[0], file_path)
+            return self.__query_directories_path(driver_service, parent_directory_parents[0], file_path)
 
         file_path.append({
             'id': parent_directory.get('id'),
@@ -121,14 +126,14 @@ class DownloadsService:
 
         return file_path
 
-    def __get_file_path(self, driver_service, parent_directory_id: str):
-        raw_file_path = self.__query_file_path(
+    def __get_file_directories_path(self, driver_service, parent_directory_id: str):
+        raw_directories_path = self.__query_directories_path(
             driver_service, parent_directory_id, [])
-        file_path = ''
-        for directory in raw_file_path:
-            file_path = f"{directory['name']}/{file_path}"
+        directories_path = ''
+        for directory in raw_directories_path:
+            directories_path = f"{directory['name']}/{directories_path}"
 
-        return f"{file_path}"
+        return f"{directories_path}"
 
     def __load_cache(self, config):
         cache = self.cache_service.read(config['cache_file'])
