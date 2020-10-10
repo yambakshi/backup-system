@@ -9,17 +9,15 @@ class FilesService:
         self.cache_service = cache_service
 
     def get_files_by_types(self, config: {}):
-        self.logger.debug(
-            f"Searching '{','.join(config['file_extensions'])}' files in '{config['root_directory_path']}'")
-
         if self.cache_service.cache_exists(config['cache_file']):
             files = self.__load_cache(config)
-            self.logger.debug(
-                f"{len(files)} '{','.join(config['file_extensions'])}' files loaded from 'cache/{config['cache_file']}'")
         else:
+            file_extensions = ','.join(config['file_extensions'])
+            self.logger.debug(
+                f"Searching '{file_extensions}' files in '{config['root_directory_path']}'")
             files = self.__iterate_files(config, [])
             self.logger.debug(
-                f"{len(files)} '{','.join(config['file_extensions'])}' files found in '{config['root_directory_path']}'")
+                f"{len(files)} '{file_extensions}' files found in '{config['root_directory_path']}'")
 
         return files
 
@@ -44,5 +42,12 @@ class FilesService:
         return files
 
     def __load_cache(self, config):
+        file_extensions = ','.join(config['file_extensions'])
+        self.logger.debug(
+            f"Loading '{file_extensions}' files from 'cache/{config['cache_file']}'")
         cache = self.cache_service.read(config['cache_file'])
-        return cache.split('\n')[:-1]
+        files = cache.split('\n')[:-1]
+        self.logger.debug(
+            f"{len(files)} '{file_extensions}' files loaded from 'cache/{config['cache_file']}'")
+
+        return files

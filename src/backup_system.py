@@ -21,9 +21,13 @@ class BackupSystem:
         if not os.path.exists('./logs'):
             Path(r'logs').mkdir(parents=True, exist_ok=True)
 
+        # Set the root logger to minimum log level of ERROR
+        # This way only log messages from severities ERROR and CRITICAL from imported modules will be logged
         logging.basicConfig(filename='logs/backup_system.log',
                             format='%(asctime)s %(levelname)s %(message)s',
                             level=logging.ERROR)
+
+        # Init the backup_system logger
         logger = logging.getLogger('backup_system')
         logger.setLevel(logging.DEBUG)
         logger.addHandler(logging.StreamHandler(sys.stdout))

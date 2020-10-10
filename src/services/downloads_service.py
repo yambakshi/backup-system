@@ -19,18 +19,20 @@ class DownloadsService:
         }
 
     def download_all_files_by_type(self, config: {}):
-        self.logger.debug(
-            f"Downloading all '{config['file_type']}' files from 'Google Drive'")
-
         if self.cache_service.cache_exists(config['cache_file']):
             downloaded_files = self.__load_cache(config)
-            self.logger.debug(
-                f"{len(downloaded_files)} '{config['file_type']}' files loaded from 'cache/{config['cache_file']}'")
         else:
             downloaded_files = self.__download_all_files(config)
-            self.logger.debug(
-                f"{len(downloaded_files)} '{config['file_type']}' files downloaded from 'Google Drive'")
 
+        return downloaded_files
+
+    def __load_cache(self, config):
+        self.logger.debug(
+            f"Loading '{config['file_type']}' files from 'cache/{config['cache_file']}'")
+        cache = self.cache_service.read(config['cache_file'])
+        downloaded_files = cache.split('\n')[:-1]
+        self.logger.debug(
+            f"{len(downloaded_files)} '{config['file_type']}' files loaded from 'cache/{config['cache_file']}'")
         return downloaded_files
 
     def download_files_by_type(self, config: {}, page_size: int):
@@ -48,6 +50,8 @@ class DownloadsService:
 
         self.__reset_tmp_folder()
         self.cache_service.clear_cache(config['cache_file'])
+        self.logger.debug(
+            f"Downloading all '{config['file_type']}' files from 'Google Drive'")
 
         # Iterate all pages
         while True:
@@ -57,6 +61,8 @@ class DownloadsService:
             if page_token is None:
                 break
 
+        self.logger.debug(
+            f"{len(downloaded_files)} '{config['file_type']}' files downloaded from 'Google Drive'")
         return downloaded_files
 
     def __download_files(self, config, results, cache_files=True):
@@ -133,10 +139,6 @@ class DownloadsService:
             directories_path = f"{directory['name']}/{directories_path}"
 
         return f"{directories_path}"
-
-    def __load_cache(self, config):
-        cache = self.cache_service.read(config['cache_file'])
-        return cache.split('\n')[:-1]
 
     def __reset_tmp_folder(self):
         if os.path.exists('./tmp'):
