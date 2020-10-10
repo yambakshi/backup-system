@@ -55,8 +55,5 @@ CONFIG = {
             'file_extensions': ['xlsx'],
             'cache_file': r'microsoft-excel.filter.cache',
         }
-    },
-    'Log': {
-        'log_file': r'backup.log'
     }
 }

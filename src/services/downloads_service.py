@@ -1,21 +1,16 @@
 import os
 import io
 import shutil
-from copy import deepcopy
-from pathlib import Path
-from datetime import datetime
+import logging
 from .google_drive_service import GoogleDriveService
-from .cache_service import CacheService
+from pathlib import Path
 from googleapiclient.http import MediaIoBaseDownload
-from config.config import CONFIG
 
 
 class DownloadsService:
-    def __init__(self, log_service):
+    def __init__(self, cache_service):
+        self.cache_service = cache_service
         self.drive = GoogleDriveService().get_drive()
-        self.downloaded_files = []
-        self.log_service = log_service
-        self.cache_service = CacheService()
         self.query_conditions = {
             'im_in_owners': "'yambakshi@gmail.com' in owners",
             'visibility': "visibility != 'anyoneCanFind' and visibility != 'anyoneWithLink' and visibility != 'domainCanFind' and visibility != 'domainWithLink' and visibility != 'limited'",
@@ -23,27 +18,21 @@ class DownloadsService:
         }
 
     def download_files_by_type(self, config: {}, use_cache: bool):
-        self.log_service.log(
+        logging.debug(
             f"Downloading '{config['drive_file_type']}' files from 'Google Drive'")
 
-        # Set cache file
-        self.cache_service.init(config['cache_file'], use_cache)
-
         if use_cache:
-            self.__load_cache(config)
-            self.log_service.log(
-                f"{len(self.downloaded_files)} '{config['drive_file_type']}' files loaded from 'cache/{config['cache_file']}'")
+            downloaded_files = self.__load_cache(config)
+            logging.debug(
+                f"{len(downloaded_files)} '{config['drive_file_type']}' files loaded from 'cache/{config['cache_file']}'")
         else:
-            self.__download_all_files(config)
-            self.log_service.log(
-                f"{len(self.downloaded_files)} '{config['drive_file_type']}' files downloaded from 'Google Drive'")
+            downloaded_files = self.__download_all_files(config)
+            logging.debug(
+                f"{len(downloaded_files)} '{config['drive_file_type']}' files downloaded from 'Google Drive'")
 
-        return deepcopy(self.downloaded_files)
+        return downloaded_files
 
     def download_files(self, config: {}, use_cache: bool, page_size: int):
-        # Set cache file
-        self.cache_service.init(config['cache_file'], use_cache)
-
         # Create tmp folder for the downloads
         self.__reset_tmp_folder()
 
@@ -53,11 +42,12 @@ class DownloadsService:
                                            spaces='drive',
                                            fields="*").execute()
 
-        self.__process_response(config, response)
-        self.log_service.log(f"{len(self.downloaded_files)} files downloaded")
-        return deepcopy(self.downloaded_files)
+        downloaded_files = self.__process_response(config, response)
+        logging.debug(f"{len(downloaded_files)} files downloaded")
+        return downloaded_files
 
     def __download_all_files(self, config):
+        downloaded_files = []
         page_token = None
 
         # Create tmp folder for the downloads
@@ -71,12 +61,15 @@ class DownloadsService:
                                                fields="*",
                                                pageToken=page_token).execute()
 
-            self.__process_response(config, response)
+            downloaded_files += self.__process_response(config, response)
             page_token = response.get('nextPageToken', None)
             if page_token is None:
                 break
 
+        return downloaded_files
+
     def __process_response(self, config, response):
+        downloaded_files = []
         for file in response.get('files', []):
             # Get file info
             file_id = file.get('id')
@@ -99,12 +92,14 @@ class DownloadsService:
                 download_progress = "Download %d%%" % int(
                     status.progress() * 100)
 
-                self.downloaded_files.append(
+                downloaded_files.append(
                     '/'.join(file_path_and_name.split('/')[1:]))
-                self.cache_service.write(
-                    '/'.join(file_path_and_name.split('/')[1:]))
-                self.log_service.log(
+                self.cache_service.write(config['cache_file'],
+                                         '/'.join(file_path_and_name.split('/')[1:]))
+                logging.debug(
                     f"{file_id} - {download_progress} - {file_path_and_name}")
+
+        return downloaded_files
 
     def __query_file_path(self, driver_service, parent_directory_id: str, file_path):
         parent_directory = driver_service.files().get(
@@ -136,8 +131,8 @@ class DownloadsService:
         return f"{file_path}"
 
     def __load_cache(self, config):
-        cache = self.cache_service.read()
-        self.downloaded_files = cache.split('\n')[:-1]
+        cache = self.cache_service.read(config['cache_file'])
+        return cache.split('\n')[:-1]
 
     def __reset_tmp_folder(self):
         shutil.rmtree(r'tmp')
