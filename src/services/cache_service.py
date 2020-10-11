@@ -1,6 +1,7 @@
 import io
 import os
 import logging
+import shutil
 from pathlib import Path
 
 
@@ -14,6 +15,10 @@ class CacheService:
         if os.path.isfile(f"cache/{cache_file}"):
             self.logger.debug(f"Clearing cache: '{cache_file}'")
             open(cache_file, 'w').close()
+
+    def delete_cache_folder(self):
+        if not os.path.exists('./cache'):
+            shutil.rmtree(r'cache')
 
     def write(self, cache_file: str, item: str):
         with io.open(f"cache/{cache_file}", "a", encoding="utf-8") as f:

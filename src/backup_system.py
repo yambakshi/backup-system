@@ -40,10 +40,13 @@ class BackupSystem:
             self.updater_service.check_downloaded_files_paths('PDF', 'PDF')
 
             # Update local machine
-            # self.updater_service.update_local_machine(
-            #     ['Google Doc', 'Google Sheet', 'PDF'])
+            self.updater_service.update_local_machine(
+                ['Google Doc', 'Google Sheet', 'PDF'])
 
-            # # Delete tmp folder
-            # self.downloads_service.delete_tmp_folder()
+            # Delete tmp folder
+            self.downloads_service.delete_tmp_folder()
+
+            # Delete cache folder
+            self.cache_service.delete_cache_folder()
         except Exception as err:
             self.logger.error(err)
