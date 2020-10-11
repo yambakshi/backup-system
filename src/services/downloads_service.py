@@ -3,8 +3,9 @@ import io
 import shutil
 import logging
 from .google_drive_service import GoogleDriveService
-from pathlib import Path
 from googleapiclient.http import MediaIoBaseDownload
+from pathlib import Path
+from config.config import CONFIG
 
 
 class DownloadsService:
@@ -18,22 +19,27 @@ class DownloadsService:
             'not_in_trash': "trashed = false"
         }
 
-    def download_all_files_by_type(self, config: {}):
+    def download_all_files(self, file_type: str):
+        config = CONFIG['downloads'][file_type]
         if self.cache_service.cache_exists(config['cache_file']):
             downloaded_files = self.__load_cache(config)
         else:
-            downloaded_files = self.__download_all_files(config)
+            downloaded_files = self.__iterate_all_files(config)
 
         return downloaded_files
 
-    def download_files_by_type(self, config: {}, page_size: int):
+    def download_files(self, file_type: str, page_size: int):
+        config = CONFIG['downloads'][file_type]
         self.logger.debug(
             f"Downloading '{config['file_type']}' files from 'Google Drive'")
         self.__reset_tmp_folder()
         results = self.__search_drive(config, page_size, None)
-        downloaded_files = self.__download_files(config, results, False)
+        downloaded_files = self.__iterate_files(config, results, False)
         self.logger.debug(f"{len(downloaded_files)} files downloaded")
         return downloaded_files
+
+    def delete_tmp_folder(self):
+        shutil.rmtree(r'tmp')
 
     def __load_cache(self, config):
         self.logger.debug(
@@ -41,10 +47,10 @@ class DownloadsService:
         cache = self.cache_service.read(config['cache_file'])
         downloaded_files = cache.split('\n')[:-1]
         self.logger.debug(
-            f"{len(downloaded_files)} '{config['save_as']}' files loaded from 'cache/{config['cache_file']}'")
+            f"Loaded {len(downloaded_files)} '{config['save_as']}' files from 'cache/{config['cache_file']}'")
         return downloaded_files
 
-    def __download_all_files(self, config):
+    def __iterate_all_files(self, config):
         downloaded_files = []
         page_token = None
 
@@ -56,16 +62,16 @@ class DownloadsService:
         # Iterate all pages
         while True:
             results = self.__search_drive(config, None, page_token)
-            downloaded_files += self.__download_files(config, results)
+            downloaded_files += self.__iterate_files(config, results)
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 break
 
         self.logger.debug(
-            f"{len(downloaded_files)} '{config['file_type']}' files downloaded from 'Google Drive'")
+            f"Downloaded {len(downloaded_files)} '{config['file_type']}' files from 'Google Drive'")
         return downloaded_files
 
-    def __download_files(self, config, results, cache_files=True):
+    def __iterate_files(self, config, results, cache_files=True):
         downloaded_files = []
         for file in results.get('files', []):
             file_id = file.get('id')
@@ -142,5 +148,5 @@ class DownloadsService:
 
     def __reset_tmp_folder(self):
         if os.path.exists('./tmp'):
-            shutil.rmtree(r'tmp')
+            self.delete_tmp_folder()
         os.makedirs('./tmp')

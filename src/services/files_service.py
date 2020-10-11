@@ -1,6 +1,7 @@
 import os
 import io
 import logging
+from config.config import CONFIG
 
 
 class FilesService:
@@ -8,7 +9,12 @@ class FilesService:
         self.logger = logging.getLogger('backup_system')
         self.cache_service = cache_service
 
-    def get_files_by_types(self, config: {}):
+    def get_files(self, space: str, file_type: str):
+        config = {
+            'root_directory_path': CONFIG[space]['root_directory_path'],
+            **CONFIG[space]['file_types'][file_type]
+        }
+        
         if self.cache_service.cache_exists(config['cache_file']):
             files = self.__load_cache(config)
         else:
@@ -17,7 +23,7 @@ class FilesService:
                 f"Searching '{file_extensions}' files in '{config['root_directory_path']}'")
             files = self.__iterate_files(config, [])
             self.logger.debug(
-                f"{len(files)} '{file_extensions}' files found in '{config['root_directory_path']}'")
+                f"Found {len(files)} '{file_extensions}' files in '{config['root_directory_path']}'")
 
         return files
 
@@ -48,6 +54,6 @@ class FilesService:
         cache = self.cache_service.read(config['cache_file'])
         files = cache.split('\n')[:-1]
         self.logger.debug(
-            f"{len(files)} '{file_extensions}' files loaded from 'cache/{config['cache_file']}'")
+            f"Loaded {len(files)} '{file_extensions}' files from 'cache/{config['cache_file']}'")
 
         return files

@@ -27,5 +27,5 @@ def init_logger():
         '%(asctime)s %(levelname)s %(message)s'))
 
     logger.addHandler(file_handler)
-    logger.addHandler(logging.StreamHandler(sys.stdout))
+    # logger.addHandler(logging.StreamHandler(sys.stdout))
     return logger
