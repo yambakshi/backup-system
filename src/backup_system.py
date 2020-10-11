@@ -13,39 +13,37 @@ class BackupSystem:
         self.cache_service = CacheService()
         self.downloads_service = DownloadsService(self.cache_service)
         self.files_service = FilesService(self.cache_service)
-        self.updater_service = UpdaterService()
 
     def update_local_machine(self):
         try:
-            files = {}
+            files_paths = {}
 
             # Get local machine file paths
-            files['local'] = self.files_service.get_files(
+            files_paths['local'] = self.files_service.get_files(
                 'local', ['Microsoft Word', 'Microsoft Excel', 'PDF'])
 
             # Get Google Drive Stream files paths
-            files['drive_stream'] = self.files_service.get_files(
+            files_paths['drive_stream'] = self.files_service.get_files(
                 'drive_stream', ['Google Doc', 'Google Sheet', 'PDF'])
 
             # Download Google Drive files
             self.downloads_service.reset_tmp_folder()
-            files['downloads'] = self.downloads_service.download_all_files(
+            files_paths['downloads'] = self.downloads_service.download_all_files(
                 ['Google Doc', 'Google Sheet', 'PDF'])
 
             # Check downloaded files
+            self.updater_service = UpdaterService(files_paths)
             self.updater_service.check_downloaded_files_paths(
-                files['downloads']['Google Doc'], files['local'], 'Microsoft Word')
+                'Google Doc', 'Microsoft Word')
             self.updater_service.check_downloaded_files_paths(
-                files['downloads']['Google Sheet'], files['local'], 'Microsoft Excel')
-            self.updater_service.check_downloaded_files_paths(
-                files['downloads']['PDF'], files['local'], 'PDF')
+                'Google Sheet', 'Microsoft Excel')
+            self.updater_service.check_downloaded_files_paths('PDF', 'PDF')
 
             # Update local machine
-            self.updater_service.update_local_machine(files['downloads']['Google Doc'])
-            self.updater_service.update_local_machine(files['downloads']['Google Sheet'])
-            self.updater_service.update_local_machine(files['downloads']['PDF'])
+            # self.updater_service.update_local_machine(
+            #     ['Google Doc', 'Google Sheet', 'PDF'])
 
             # # Delete tmp folder
-            self.downloads_service.delete_tmp_folder()
+            # self.downloads_service.delete_tmp_folder()
         except Exception as err:
             self.logger.error(err)
