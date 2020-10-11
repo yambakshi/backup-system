@@ -26,15 +26,6 @@ class DownloadsService:
 
         return downloaded_files
 
-    def __load_cache(self, config):
-        self.logger.debug(
-            f"Loading '{config['file_type']}' files from 'cache/{config['cache_file']}'")
-        cache = self.cache_service.read(config['cache_file'])
-        downloaded_files = cache.split('\n')[:-1]
-        self.logger.debug(
-            f"{len(downloaded_files)} '{config['file_type']}' files loaded from 'cache/{config['cache_file']}'")
-        return downloaded_files
-
     def download_files_by_type(self, config: {}, page_size: int):
         self.logger.debug(
             f"Downloading '{config['file_type']}' files from 'Google Drive'")
@@ -42,6 +33,15 @@ class DownloadsService:
         results = self.__search_drive(config, page_size, None)
         downloaded_files = self.__download_files(config, results, False)
         self.logger.debug(f"{len(downloaded_files)} files downloaded")
+        return downloaded_files
+
+    def __load_cache(self, config):
+        self.logger.debug(
+            f"Loading '{config['save_as']}' files from 'cache/{config['cache_file']}'")
+        cache = self.cache_service.read(config['cache_file'])
+        downloaded_files = cache.split('\n')[:-1]
+        self.logger.debug(
+            f"{len(downloaded_files)} '{config['save_as']}' files loaded from 'cache/{config['cache_file']}'")
         return downloaded_files
 
     def __download_all_files(self, config):

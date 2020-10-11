@@ -1,77 +1,76 @@
 import os
 import logging
-import sys
+from pathlib import Path
+from services.logger_service import init_logger
 from services.cache_service import CacheService
 from services.downloads_service import DownloadsService
 from services.files_service import FilesService
 from services.windows_service import WindowsService
 from config.config import CONFIG
-from pathlib import Path
 
 
 class BackupSystem:
     def __init__(self):
-        self.logger = self.init_logger()
+        self.logger = init_logger()
         self.cache_service = CacheService()
         self.downloads_service = DownloadsService(self.cache_service)
         self.files_service = FilesService(self.cache_service)
         self.windows_service = WindowsService()
 
-    def init_logger(self):
-        if not os.path.exists('./logs'):
-            Path(r'logs').mkdir(parents=True, exist_ok=True)
-
-        # Set the root logger to minimum log level of ERROR
-        # This way only log messages from severities ERROR and CRITICAL from imported modules will be logged
-        logging.basicConfig(filename='logs/backup_system.log',
-                            format='%(asctime)s %(levelname)s %(message)s',
-                            level=logging.ERROR)
-
-        # Init the backup_system logger
-        logger = logging.getLogger('backup_system')
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(logging.StreamHandler(sys.stdout))
-        return logger
-
     def update_local_files(self):
         try:
             # Filter Microsoft Excel files on local machine
             local_microsoft_excel_files = self.files_service.get_files_by_types(
-                CONFIG['local']['Microsoft Excel'])
+                CONFIG['local']['Microsoft Word'])
 
             # Filter Google Sheet files on Google Drive Stream folder
             drive_stream_google_sheet_files = self.files_service.get_files_by_types(
-                CONFIG['local']['Google Sheet'])
+                CONFIG['local']['Google Doc'])
 
             # Download all Google Sheet documents from Google Drive
             drive_google_sheet_files = self.downloads_service.download_all_files_by_type(
-                CONFIG['drive']['Google Sheet'])
+                CONFIG['drive']['Google Doc'])
 
-            # Get a list of files found on Google Drive but missing from local machine
-            missing_files = self.__get_missing_files(
-                local_microsoft_excel_files, drive_google_sheet_files)
-
-            # for missing_file in missing_files:
-            #     parent_folder = '/'.join(missing_file.split('/')[:-1])
-            #     local_path_to_folder = f"D:/Yam Bakshi/{parent_folder}"
-            #     if not os.path.isdir(local_path_to_folder):
-            #         Path(parent_folder).mkdir(parents=True, exist_ok=True)
+            # self.__replace_local_files_with_drive_files(
+            #     drive_google_sheet_files)
         except Exception as err:
             self.logger.error(err)
 
-    def __get_missing_files(self, local_files, downloaded_files):
-        missing_files = []
-        for file_path in downloaded_files:
-            if not file_path in local_files:
-                missing_files.append(file_path)
-                self.logger.debug(
-                    f"Downloaded file is missing from local machine: '{file_path}'")
+    def __replace_local_files_with_drive_files(self, downloaded_drive_files):
+        tmp_directory_path = os.path.abspath('tmp')
 
-        if len(missing_files) == 0:
-            self.logger.debug(
-                'All downloaded files paths are found on local machine')
-        else:
-            self.logger.debug(
-                f"{len(missing_files)} downloaded files are missing from local machine")
+        for drive_file in downloaded_drive_files:
+            drive_file_backslash = drive_file.replace('/', '\\')
+            tmp_file_path = f"{tmp_directory_path}\\My Drive\\{drive_file_backslash}"
+            if not os.path.isfile(tmp_file_path):
+                self.logger.error(
+                    f"Failed to find tmp file: '{tmp_file_path}'")
+                continue
 
-        return missing_files
+            local_file_to_replace = f"D:\\Yam Bakshi\\{drive_file_backslash}"
+            if os.path.isfile(local_file_to_replace):
+                self.__replace_local_file(local_file_to_replace, tmp_file_path)
+            else:
+                self.__add_new_drive_file(local_file_to_replace, tmp_file_path)
+
+    def __replace_local_file(self, local_file_to_replace, drive_file):
+        self.logger.debug(
+            f"Moving old file '{local_file_to_replace}' to 'Recycle Bin'")
+        self.windows_service.move_to_recycle_bin(local_file_to_replace)
+
+        local_file_to_replace_parent = '\\'.join(
+            local_file_to_replace.split('\\')[:-1])
+        self.logger.debug(
+            f"Moving new file '{drive_file}' into '{local_file_to_replace_parent}'")
+        os.rename(drive_file, local_file_to_replace)
+
+    def __add_new_drive_file(self, missing_local_file, drive_file):
+        missing_local_file_parent = '\\'.join(
+            missing_local_file.split('\\')[-1])
+        self.logger.debug(
+            f"Creating new local destination path: '{missing_local_file_parent}'")
+        Path(missing_local_file_parent).mkdir(parents=True, exist_ok=True)
+
+        self.logger.debug(
+            f"Moving new file '{drive_file}' to '{missing_local_file_parent}'")
+        os.rename(drive_file, missing_local_file)

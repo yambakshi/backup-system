@@ -20,7 +20,7 @@ class CacheService:
             f.write(f"{item}\n")
 
     def read(self, cache_file: str):
-        with io.open(f"cache/{cache_file}", "r") as f:
+        with io.open(f"cache/{cache_file}", "r", encoding="utf8") as f:
             contents = f.read()
             return contents
 
