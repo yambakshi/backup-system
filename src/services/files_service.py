@@ -9,23 +9,27 @@ class FilesService:
         self.logger = logging.getLogger('backup_system')
         self.cache_service = cache_service
 
-    def get_files(self, space: str, file_type: str):
-        config = {
-            'root_directory_path': CONFIG[space]['root_directory_path'],
-            **CONFIG[space]['file_types'][file_type]
-        }
-        
-        if self.cache_service.cache_exists(config['cache_file']):
-            files = self.__load_cache(config)
-        else:
-            file_extensions = ','.join(config['file_extensions'])
-            self.logger.debug(
-                f"Searching '{file_extensions}' files in '{config['root_directory_path']}'")
-            files = self.__iterate_files(config, [])
-            self.logger.debug(
-                f"Found {len(files)} '{file_extensions}' files in '{config['root_directory_path']}'")
+    def get_files(self, space: str, file_types: []):
+        space_files = {}
+        for file_type in file_types:
+            config = {
+                'root_directory_path': CONFIG[space]['root_directory_path'],
+                **CONFIG[space]['file_types'][file_type]
+            }
+            
+            if self.cache_service.cache_exists(config['cache_file']):
+                files = self.__load_cache(config)
+            else:
+                file_extensions = ','.join(config['file_extensions'])
+                self.logger.debug(
+                    f"Searching '{file_extensions}' files in '{config['root_directory_path']}'")
+                files = self.__iterate_files(config, [])
+                self.logger.debug(
+                    f"Found {len(files)} '{file_extensions}' files in '{config['root_directory_path']}'")
 
-        return files
+            space_files[file_type] = files
+
+        return space_files
 
     def __iterate_files(self, config: {}, files: []):
         for filename in os.listdir(config['root_directory_path']):

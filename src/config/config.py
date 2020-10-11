@@ -46,7 +46,7 @@ CONFIG = {
             'save_as': 'docx',
             # 'download_as': 'application/pdf',
             # 'save_as': 'pdf',
-            'cache_file': r'drive.google-docs.cache',
+            'cache_file': r'downloads.google-docs.cache',
         },
         'Google Sheet': {
             'file_type': 'application/vnd.google-apps.spreadsheet',
@@ -54,13 +54,12 @@ CONFIG = {
             'save_as': 'xlsx',
             # 'download_as': 'application/pdf',
             # 'save_as': 'pdf',
-            'cache_file': r'drive.google-sheets.cache',
+            'cache_file': r'downloads.google-sheets.cache',
         },
         'PDF': {
             'file_type': 'application/pdf',
             'download_as': 'application/pdf',
-            'save_as': 'pdf',
-            'cache_file': r'drive.pdf.cache',
+            'cache_file': r'downloads.pdf.cache',
         },
     }
 }
