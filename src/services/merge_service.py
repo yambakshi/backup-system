@@ -5,9 +5,12 @@ from services.windows_service import WindowsService
 
 
 class MergeService:
-    def __init__(self, files_paths: {}):
+    def __init__(self):
         self.logger = logging.getLogger('backup_system')
         self.windows_service = WindowsService()
+        self.files_paths = {'local': [], 'downloads': []}
+
+    def set_files_paths(self, files_paths):
         self.files_paths = files_paths
 
     def compare_local_and_downloads(self, local_file_type: str, downloads_file_type: str):

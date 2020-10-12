@@ -11,10 +11,16 @@ class BackupSystem:
     def __init__(self):
         self.logger = init_logger()
         self.cache_service = CacheService()
+        self.merge_service = MergeService()
         self.google_drive_service = GoogleDriveService(self.cache_service)
         self.search_service = SearchService(self.cache_service)
 
     def update_local_machine(self):
+        # TODO: Remove files paths that don't exist in Google Drive stream
+        #       but do exist in Google Drive from downloads cache
+        # TODO: Replace local files only if modification date changed from previous merge
+        # TODO: Don't replace non-Google Drive types such as PDF or PNG. ONLY add if missing
+
         try:
             files_paths = {}
 
@@ -30,8 +36,8 @@ class BackupSystem:
             files_paths['downloads'] = self.google_drive_service.download_all_files(
                 ['Google Doc', 'Google Sheet', 'PDF'])
 
-            # Check downloaded files
-            self.merge_service = MergeService(files_paths)
+            # Compare downloads and local files paths
+            self.merge_service.set_files_paths(files_paths)
             self.merge_service.compare_local_and_downloads(
                 'Microsoft Word', 'Google Doc')
             self.merge_service.compare_local_and_downloads(
