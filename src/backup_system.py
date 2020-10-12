@@ -35,9 +35,7 @@ class BackupSystem:
                 'drive_stream', r'G:/My Drive')
 
             # Download Google Drive files
-            if os.path.exists('./tmp'):
-                shutil.rmtree(r'tmp')
-
+            self.__delete_tmp_folder()
             files_paths['downloads'] = self.google_drive_service.download_all_files(
                 ['Google Doc', 'Google Sheet'])
 
@@ -52,7 +50,7 @@ class BackupSystem:
                 ['Google Doc', 'Google Sheet', 'PDF'])
 
             # Cleanup
-            self.google_drive_service.delete_tmp_folder()
+            self.__delete_tmp_folder()
             self.cache_service.delete_cache_folder()
         except Exception as err:
             self.logger.error(err)
@@ -62,3 +60,7 @@ class BackupSystem:
             pass
         except Exception as err:
             self.logger.error(err)
+
+    def __delete_tmp_folder(self):
+        if os.path.exists('./tmp'):
+            shutil.rmtree(r'tmp')
