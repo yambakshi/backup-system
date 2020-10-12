@@ -4,12 +4,12 @@ import logging
 from config.config import CONFIG
 
 
-class SearchService:
+class ScanService:
     def __init__(self, cache_service):
         self.logger = logging.getLogger('backup_system')
         self.cache_service = cache_service
 
-    def search_files(self, space: str, root_directory_path: str):
+    def scan(self, space: str, root_directory_path: str):
         all_files_paths = {}
         for file_type, file_type_data in CONFIG[space].items():
             config = {
@@ -20,12 +20,11 @@ class SearchService:
             if self.cache_service.cache_exists(config['cache_file']):
                 files_paths = self.__load_cache(config)
             else:
-                file_extensions = ','.join(config['file_extensions'])
                 self.logger.debug(
-                    f"Searching '{file_extensions}' files in '{config['root_directory_path']}'")
+                    f"Searching '{config['file_extension']}' files in '{config['root_directory_path']}'")
                 files_paths = self.__iterate_files(config, [])
                 self.logger.debug(
-                    f"Found {len(files_paths)} '{file_extensions}' files in '{config['root_directory_path']}'")
+                    f"Found {len(files_paths)} '{config['file_extension']}' files in '{config['root_directory_path']}'")
 
             all_files_paths[file_type] = files_paths
 
@@ -42,7 +41,7 @@ class SearchService:
                     {**config, 'root_directory_path': file_path}, files_paths)
 
             extension = os.path.splitext(filename)[1][1:]
-            if extension in config['file_extensions']:
+            if extension == config['file_extension']:
                 file_path_no_root = '/'.join(file_path.split('/')[2:])
                 files_paths.append(file_path_no_root)
                 self.cache_service.write(
@@ -52,12 +51,11 @@ class SearchService:
         return files_paths
 
     def __load_cache(self, config):
-        file_extensions = ','.join(config['file_extensions'])
         self.logger.debug(
-            f"Loading '{file_extensions}' files from 'cache/{config['cache_file']}'")
+            f"Loading '{config['file_extension']}' files from 'cache/{config['cache_file']}'")
         cache = self.cache_service.read(config['cache_file'])
         files_paths = cache.split('\n')[:-1]
         self.logger.debug(
-            f"Loaded {len(files_paths)} '{file_extensions}' files from 'cache/{config['cache_file']}'")
+            f"Loaded {len(files_paths)} '{config['file_extension']}' files from 'cache/{config['cache_file']}'")
 
         return files_paths

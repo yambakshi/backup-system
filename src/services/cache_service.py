@@ -29,5 +29,16 @@ class CacheService:
             contents = f.read()
             return contents
 
+    def update(self, update: []):
+        for cache in update:
+            cache_file = cache['cache_file']
+            lines = self.read(cache_file).split('\n')[:-1]
+            for line in cache['remove_lines']:
+                lines.remove(line)
+
+            lines += [line.replace('\\', '/') for line in cache['add_lines']]
+            with io.open(f"cache/{cache_file}", "w", encoding="utf8") as f:
+                f.writelines(line + '\n' for line in lines)
+
     def cache_exists(self, cache_file: str):
         return os.path.isfile(f"cache/{cache_file}")

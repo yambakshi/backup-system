@@ -1,9 +1,9 @@
 import os
 import io
 import logging
-from utils.google_drive import init_drive
 from googleapiclient.http import MediaIoBaseDownload
 from pathlib import Path
+from utils.google_drive import init_drive
 from config.config import CONFIG
 
 
@@ -37,8 +37,7 @@ class GoogleDriveService:
 
     def download_files(self, file_type: str, page_size: int):
         config = CONFIG['downloads'][file_type]
-        self.logger.debug(
-            f"Downloading '{config['file_type']}' files from 'Google Drive'")
+        self.logger.debug(f"Downloading '{config['file_type']}' files from 'Google Drive'")
         results = self.__search_drive(config, page_size, None)
         files_paths = self.__iterate_files(config, results, False)
         self.logger.debug(f"{len(files_paths)} files downloaded")
@@ -116,7 +115,7 @@ class GoogleDriveService:
                     self.cache_service.write(
                         config['cache_file'], file_path_no_root)
                 self.logger.debug(
-                    f"Downloaded {download_progress} of '{file_path}' ({file_id})")
+                    f"Downloaded {download_progress} of '{file_path}'")
 
         return files_paths
 

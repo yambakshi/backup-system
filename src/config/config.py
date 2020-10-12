@@ -1,34 +1,34 @@
 CONFIG = {
     'local': {
         'Google Doc': {
-            'file_extensions': ['docx'],
+            'file_extension': 'docx',
             'cache_file': r'local.google-docs.cache',
             'excluded_directories': [r'tmp']
         },
         'Google Sheet': {
-            'file_extensions': ['xlsx'],
+            'file_extension': 'xlsx',
             'cache_file': r'local.google-sheets.cache',
             'excluded_directories': [r'tmp']
         },
         'PDF': {
-            'file_extensions': ['pdf'],
+            'file_extension': 'pdf',
             'cache_file': r'local.pdf.cache',
             'excluded_directories': [r'tmp']
         }
     },
     'drive_stream': {
         'Google Doc': {
-            'file_extensions': ['gdoc'],
+            'file_extension': 'gdoc',
             'cache_file': r'drive_stream.google-docs.cache',
             'excluded_directories': []
         },
         'Google Sheet': {
-            'file_extensions': ['gsheet'],
+            'file_extension': 'gsheet',
             'cache_file': r'drive_stream.google-sheets.cache',
             'excluded_directories': []
         },
         'PDF': {
-            'file_extensions': ['pdf'],
+            'file_extension': 'pdf',
             'cache_file': r'drive_stream.pdf.cache',
             'excluded_directories': []
         }
