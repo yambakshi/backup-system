@@ -1,6 +1,5 @@
 import os
 import io
-import shutil
 import logging
 from utils.google_drive import init_drive
 from googleapiclient.http import MediaIoBaseDownload
@@ -40,19 +39,10 @@ class GoogleDriveService:
         config = CONFIG['downloads'][file_type]
         self.logger.debug(
             f"Downloading '{config['file_type']}' files from 'Google Drive'")
-        self.__reset_tmp_folder()
         results = self.__search_drive(config, page_size, None)
         files_paths = self.__iterate_files(config, results, False)
         self.logger.debug(f"{len(files_paths)} files downloaded")
         return files_paths
-
-    def delete_tmp_folder(self):
-        shutil.rmtree(r'tmp')
-
-    def __reset_tmp_folder(self):
-        if os.path.exists('./tmp'):
-            self.delete_tmp_folder()
-        os.makedirs('./tmp')
 
     def __load_cache(self, config: {}):
         if hasattr(config, 'save_as'):
@@ -72,11 +62,12 @@ class GoogleDriveService:
         files_paths = []
         page_token = None
 
-        self.__reset_tmp_folder()
-        self.cache_service.clear_cache(config['cache_file'])
-
         self.logger.debug(
             f"Downloading all '{config['file_type']}' files from 'Google Drive'")
+
+        # Download preparation
+        Path(r'tmp').mkdir(parents=True, exist_ok=True)
+        self.cache_service.clear_cache(config['cache_file'])
 
         # Iterate all pages
         while True:

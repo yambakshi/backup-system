@@ -1,42 +1,36 @@
 CONFIG = {
     'local': {
-        'root_directory_path': r'D:/Yam Bakshi',
-        'file_types': {
-            'Microsoft Word': {
-                'file_extensions': ['docx'],
-                'cache_file': r'local.microsoft-word.cache',
-                'excluded_directories': [r'tmp']
-            },
-            'Microsoft Excel': {
-                'file_extensions': ['xlsx'],
-                'cache_file': r'local.microsoft-excel.cache',
-                'excluded_directories': [r'tmp']
-            },
-            'PDF': {
-                'file_extensions': ['pdf'],
-                'cache_file': r'local.pdf.cache',
-                'excluded_directories': [r'tmp']
-            }
+        'Google Doc': {
+            'file_extensions': ['docx'],
+            'cache_file': r'local.google-docs.cache',
+            'excluded_directories': [r'tmp']
+        },
+        'Google Sheet': {
+            'file_extensions': ['xlsx'],
+            'cache_file': r'local.google-sheets.cache',
+            'excluded_directories': [r'tmp']
+        },
+        'PDF': {
+            'file_extensions': ['pdf'],
+            'cache_file': r'local.pdf.cache',
+            'excluded_directories': [r'tmp']
         }
     },
     'drive_stream': {
-        'root_directory_path': r'G:/My Drive',
-        'file_types': {
-            'Google Doc': {
-                'file_extensions': ['gdoc'],
-                'cache_file': r'drive_stream.google-docs.cache',
-                'excluded_directories': []
-            },
-            'Google Sheet': {
-                'file_extensions': ['gsheet'],
-                'cache_file': r'drive_stream.google-sheets.cache',
-                'excluded_directories': []
-            },
-            'PDF': {
-                'file_extensions': ['pdf'],
-                'cache_file': r'drive_stream.pdf.cache',
-                'excluded_directories': []
-            }
+        'Google Doc': {
+            'file_extensions': ['gdoc'],
+            'cache_file': r'drive_stream.google-docs.cache',
+            'excluded_directories': []
+        },
+        'Google Sheet': {
+            'file_extensions': ['gsheet'],
+            'cache_file': r'drive_stream.google-sheets.cache',
+            'excluded_directories': []
+        },
+        'PDF': {
+            'file_extensions': ['pdf'],
+            'cache_file': r'drive_stream.pdf.cache',
+            'excluded_directories': []
         }
     },
     'downloads': {

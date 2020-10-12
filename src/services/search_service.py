@@ -9,12 +9,12 @@ class SearchService:
         self.logger = logging.getLogger('backup_system')
         self.cache_service = cache_service
 
-    def search_files(self, space: str, file_types: []):
+    def search_files(self, space: str, root_directory_path: str):
         all_files_paths = {}
-        for file_type in file_types:
+        for file_type, file_type_data in CONFIG[space].items():
             config = {
-                'root_directory_path': CONFIG[space]['root_directory_path'],
-                **CONFIG[space]['file_types'][file_type]
+                'root_directory_path': root_directory_path,
+                **file_type_data
             }
 
             if self.cache_service.cache_exists(config['cache_file']):
