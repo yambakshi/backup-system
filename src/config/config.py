@@ -1,59 +1,59 @@
 CONFIG = {
     'local': {
         'Google Doc': {
-            'file_extension': 'docx',
+            'extension': 'docx',
             'cache_file': r'local.google-docs.cache',
             'excluded_directories': [r'tmp']
         },
         'Google Sheet': {
-            'file_extension': 'xlsx',
+            'extension': 'xlsx',
             'cache_file': r'local.google-sheets.cache',
             'excluded_directories': [r'tmp']
         },
         'PDF': {
-            'file_extension': 'pdf',
+            'extension': 'pdf',
             'cache_file': r'local.pdf.cache',
             'excluded_directories': [r'tmp']
         }
     },
     'drive_stream': {
         'Google Doc': {
-            'file_extension': 'gdoc',
+            'extension': 'gdoc',
             'cache_file': r'drive_stream.google-docs.cache',
             'excluded_directories': []
         },
         'Google Sheet': {
-            'file_extension': 'gsheet',
+            'extension': 'gsheet',
             'cache_file': r'drive_stream.google-sheets.cache',
             'excluded_directories': []
         },
         'PDF': {
-            'file_extension': 'pdf',
+            'extension': 'pdf',
             'cache_file': r'drive_stream.pdf.cache',
             'excluded_directories': []
         }
     },
-    'downloads': {
+    'drive': {
         'Google Doc': {
             'file_type': 'application/vnd.google-apps.document',
             'download_as': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'save_as': 'docx',
+            'extension': 'docx',
             # 'download_as': 'application/pdf',
-            # 'save_as': 'pdf',
-            'cache_file': r'downloads.google-docs.cache',
+            # 'extension': 'pdf',
+            'cache_file': r'drive.google-docs.cache',
         },
         'Google Sheet': {
             'file_type': 'application/vnd.google-apps.spreadsheet',
             'download_as': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'save_as': 'xlsx',
+            'extension': 'xlsx',
             # 'download_as': 'application/pdf',
-            # 'save_as': 'pdf',
-            'cache_file': r'downloads.google-sheets.cache',
+            # 'extension': 'pdf',
+            'cache_file': r'drive.google-sheets.cache',
         },
         'PDF': {
             'file_type': 'application/pdf',
-            'download_as': 'application/pdf',
-            'cache_file': r'downloads.pdf.cache',
+            'extension': 'pdf',
+            'cache_file': r'drive.pdf.cache',
         },
     }
 }
