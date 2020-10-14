@@ -131,6 +131,9 @@ dmypy.json
 # tmp
 tmp
 
+# cache
+cache
+
 # snapshots
 snapshots
 

@@ -16,9 +16,10 @@ GOOGLE_FILE_TYPES = [
 
 
 class GoogleDriveService:
-    def __init__(self):
+    def __init__(self, cache_service):
         self.logger = logging.getLogger('backup_system')
         self.drive = init_drive()
+        self.cache_service = cache_service
 
     def download_changes(self, diff: {}):
         self.logger.debug("Downloading changes from 'drive'")
@@ -28,20 +29,24 @@ class GoogleDriveService:
             shutil.rmtree(r'tmp')
         os.mkdir('tmp')
 
-        for diff_type, file_data in diff.items():
-            # Skipping files that were removed or Non-Google types (Google Doc, Google Sheet etc.)
-            if diff_type == 'removed' or not file_data['is_google_type']:
+        for diff_type, files_data in diff.items():
+            if diff_type == 'removed':
                 continue
 
-            # Replace file's drive extension with local extension
-            file_type = file_data['type']
-            local_extension = CONFIG['local'][file_type]['extension']
-            drive_extension = CONFIG['drive'][file_type]['extension']
-            file_path = file_path.replace(
-                drive_extension, local_extension)
+            for file_data in files_data:
+                # Skipping files that were removed or Non-Google types (Google Doc, Google Sheet etc.)
+                if not file_data['is_google_type']:
+                    continue
 
-            # Download file
-            self.__download_file(file_data)
+                # Replace file's drive extension with local extension
+                file_type = file_data['type']
+                local_extension = CONFIG['local'][file_type]['extension']
+                drive_extension = CONFIG['drive'][file_type]['extension']
+                file_data['path'] = file_data['path'].replace(
+                    drive_extension, local_extension)
+
+                # Download file
+                self.__download_file(file_data)
 
         new_len = len(
             list(filter(lambda file_data: file_data['is_google_type'], diff['new'])))
@@ -56,10 +61,14 @@ class GoogleDriveService:
             if modified_len > 0:
                 self.logger.debug(f"Downloaded {modified_len} modified files")
 
-    def scan(self, files_types: []):
+    def scan(self, files_types: [], load_cache: bool):
         files_paths = {}
         for file_type in files_types:
-            files_paths[file_type] = self.__iterate_files(file_type)
+            config = CONFIG['drive'][file_type]
+            if load_cache and os.path.isfile(f"cache/{config['cache_file']}"):
+                files_paths[file_type] = self.__load_cache(config)
+            else:
+                files_paths[file_type] = self.__iterate_files(file_type)
 
         return files_paths
 
@@ -168,3 +177,20 @@ class GoogleDriveService:
             directories_path = f"{directory['name']}/{directories_path}"
 
         return f"{directories_path}"
+
+    def __load_cache(self, config: {}):
+        self.logger.debug(
+            f"Loading '{config['extension']}' files from 'cache/{config['cache_file']}'")
+        cache_contents = self.cache_service.read(config['cache_file'])
+        cache_lines = cache_contents.split('\n')[:-1]
+        files_paths = {}
+        for line in cache_lines:
+            file_path, file_id, file_last_modified = line.split('|')
+            files_paths[file_path] = {
+                'id': file_id,
+                'last_modified': float(file_last_modified)
+            }
+
+        self.logger.debug(
+            f"Loaded {len(files_paths)} '{config['extension']}' files from 'cache/{config['cache_file']}'")
+        return files_paths

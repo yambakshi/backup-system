@@ -1,8 +1,8 @@
 import os
 import logging
 from pathlib import Path
+from send2trash import send2trash
 from shutil import copyfile
-from services.windows_service import WindowsService
 from config.config import CONFIG
 
 
@@ -15,7 +15,6 @@ GOOGLE_FILE_TYPES = [
 class DiffService:
     def __init__(self, snapshot_service):
         self.logger = logging.getLogger('backup_system')
-        self.windows_service = WindowsService()
         self.snapshot_service = snapshot_service
 
     def get_diff(self, files_paths):
@@ -84,34 +83,35 @@ class DiffService:
     def merge_changes(self, diff):
         self.logger.debug("Merging changes into 'local'")
         tmp_abs_path = os.path.abspath('tmp')
-        for diff_type, file_data in diff.items():
-            file_path = file_data['path'].replace('/', '\\')
-            if file_data['is_google_type']:
-                downloads_file_path = f"{tmp_abs_path}\\{file_path}"
-            else:
-                downloads_file_path = f"G:\\My Drive\\{file_path}"
+        for diff_type, files_data in diff.items():
+            for file_data in files_data:
+                file_path = file_data['path'].replace('/', '\\')
+                if file_data['is_google_type']:
+                    downloads_file_path = f"{tmp_abs_path}\\{file_path}"
+                else:
+                    downloads_file_path = f"G:\\My Drive\\{file_path}"
 
-            local_file_path = f"D:\\Yam Bakshi\\{file_path}"
-            if diff_type == 'removed':
-                self.__remove_file(local_file_path)
-                continue
+                local_file_path = f"D:\\Yam Bakshi\\{file_path}"
+                if diff_type == 'removed':
+                    self.__remove_file(local_file_path)
+                    continue
 
-            if diff_type == 'modified':
-                self.__replace_file(
-                    local_file_path, downloads_file_path, file_data['is_google_type'])
-                continue
+                if diff_type == 'modified':
+                    self.__replace_file(
+                        local_file_path, downloads_file_path, not file_data['is_google_type'])
+                elif diff_type == 'new':
+                    self.__add_file(
+                        local_file_path, downloads_file_path, not file_data['is_google_type'])
+                else:
+                    continue
 
-            if diff_type == 'new':
-                self.__add_file(local_file_path,
-                                downloads_file_path, file_data['is_google_type'])
-
-            os.utime(local_file_path,
-                     (file_data['last_modified'], file_data['last_modified']))
+                os.utime(local_file_path,
+                         (file_data['last_modified'], file_data['last_modified']))
 
     def __replace_file(self, old_file_path: str, new_file_path: str, copy_new_file: bool):
         self.logger.debug(
             f"Replacing '{old_file_path}' with '{new_file_path}'")
-        self.windows_service.move_to_recycle_bin(old_file_path)
+        send2trash(old_file_path)
         if copy_new_file:
             copyfile(new_file_path, old_file_path)
         else:
@@ -129,4 +129,4 @@ class DiffService:
 
     def __remove_file(self, file_path):
         self.logger.debug(f"Removing file: {file_path}")
-        self.windows_service.move_to_recycle_bin(file_path)
+        send2trash(file_path)

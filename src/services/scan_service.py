@@ -1,24 +1,26 @@
 import os
 import io
 import logging
-import time
-from datetime import datetime
 from config.config import CONFIG
 
 
 class ScanService:
-    def __init__(self):
+    def __init__(self, cache_service):
         self.logger = logging.getLogger('backup_system')
+        self.cache_service = cache_service
 
-    def scan(self, space: str, root_directory_path: str):
+    def scan(self, space: str, root_directory_path: str, load_cache: bool):
         all_files_paths = {}
         for file_type, file_type_data in CONFIG[space].items():
             self.config = file_type_data
-            self.logger.debug(
-                f"Searching '{file_type_data['extension']}' files in '{root_directory_path}'")
-            files_paths = self.__iterate_files(root_directory_path, {})
-            self.logger.debug(
-                f"Found {len(files_paths)} '{file_type_data['extension']}' files in '{root_directory_path}'")
+            if load_cache and os.path.isfile(f"cache/{self.config['cache_file']}"):
+                files_paths = self.__load_cache(self.config)
+            else:
+                self.logger.debug(
+                    f"Searching '{file_type_data['extension']}' files in '{root_directory_path}'")
+                files_paths = self.__iterate_files(root_directory_path, {})
+                self.logger.debug(
+                    f"Found {len(files_paths)} '{file_type_data['extension']}' files in '{root_directory_path}'")
 
             all_files_paths[file_type] = files_paths
 
@@ -43,4 +45,18 @@ class ScanService:
 
                 self.logger.debug(f"Found file: '{file_path}'")
 
+        return files_paths
+
+    def __load_cache(self, config: {}):
+        self.logger.debug(f"Loading '{config['extension']}' files from 'cache/{config['cache_file']}'")
+        cache_contents = self.cache_service.read(config['cache_file'])
+        cache_lines = cache_contents.split('\n')[:-1]
+        files_paths = {}
+        for line in cache_lines:
+            file_path, file_last_modified = line.split('|')
+            files_paths[file_path] = {
+                'last_modified': float(file_last_modified)
+            }
+
+        self.logger.debug(f"Loaded {len(files_paths)} '{config['extension']}' files from 'cache/{config['cache_file']}'")
         return files_paths
