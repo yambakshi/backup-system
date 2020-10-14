@@ -4,7 +4,7 @@ import shutil
 from utils.logger import init_logger
 from services.google_drive_service import GoogleDriveService
 from services.scan_service import ScanService
-from services.cache_service import CacheService
+from services.snapshot_service import SnapshotService
 from services.diff_service import DiffService
 from config.config import CONFIG
 
@@ -12,10 +12,10 @@ from config.config import CONFIG
 class BackupSystem:
     def __init__(self):
         self.logger = init_logger()
-        self.cache_service = CacheService()
+        self.snapshot_service = SnapshotService()
         self.scan_service = ScanService()
         self.google_drive_service = GoogleDriveService()
-        self.diff_service = DiffService(self.cache_service)
+        self.diff_service = DiffService(self.snapshot_service)
 
     def backup_google_drive_files(self):
         # TODO: Implement 'backup_local_machine_files' method
@@ -35,7 +35,7 @@ class BackupSystem:
             diff = self.diff_service.get_diff(files_paths)
             downloads = self.google_drive_service.download_changes(diff)
             self.diff_service.merge_downloads(downloads)
-            # self.cache_service.update_cache(files_paths)
+            # self.snapshot_service.update_cache(files_paths)
 
             # Cleanup
             self.__delete_tmp_folder()

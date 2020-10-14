@@ -7,10 +7,10 @@ from config.config import CONFIG
 
 
 class DiffService:
-    def __init__(self, cache_service):
+    def __init__(self, snapshot_service):
         self.logger = logging.getLogger('backup_system')
         self.windows_service = WindowsService()
-        self.cache_service = cache_service
+        self.snapshot_service = snapshot_service
 
     def get_diff(self, files_paths):
         self.logger.debug("Comparing 'drive' and 'local'")
@@ -24,7 +24,7 @@ class DiffService:
             # Get a list of 'drive_stream' files paths
             drive_stream = list(files_paths['drive_stream'][file_type].keys())
 
-            cache_contents = self.cache_service.read(
+            cache_contents = self.snapshot_service.read(
                 CONFIG['drive'][file_type]['cache_file'])
             cache_files = [cache_file.split(
                 '|')[0] for cache_file in cache_contents.split('\n')[:-1]]
