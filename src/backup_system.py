@@ -17,12 +17,8 @@ class BackupSystem:
         self.diff_service = DiffService(self.snapshot_service)
 
     def backup_google_drive_files(self):
-        # TODO: Implement 'backup_local_machine_files' method
-        # TODO: Add argparse
-        # TODO: Handle 'remove' files
-
         try:
-            self.logger.debug("Backing-up 'Google Drive' files")
+            self.logger.debug("Backing-up Google Drive files")
             files_paths = {
                 'drive_stream': self.scan_service.scan('drive_stream', r'G:/My Drive'),
                 'local': self.scan_service.scan('local', r'D:/Yam Bakshi'),
@@ -30,8 +26,8 @@ class BackupSystem:
             }
 
             diff = self.diff_service.get_diff(files_paths)
-            downloads = self.google_drive_service.download_changes(diff)
-            self.diff_service.merge_downloads(downloads)
+            self.google_drive_service.download_changes(diff)
+            self.diff_service.merge_changes(diff)
             self.snapshot_service.save(files_paths)
 
             # Cleanup
@@ -40,7 +36,7 @@ class BackupSystem:
         except Exception as err:
             self.logger.error(err)
 
-    def backup_local_machine_files(self):
+    def backup_local_files(self):
         try:
             self.logger.debug("Backing-up local files")
         except Exception as err:

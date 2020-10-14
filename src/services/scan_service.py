@@ -40,25 +40,7 @@ class ScanService:
                 files_paths[file_path_no_root] = {
                     'last_modified': file_last_modified
                 }
-                # if self.cache_scan:
-                #     self.cache_service.write(
-                #         self.config['cache_file'], f"{file_path_no_root}|{file_last_modified}")
+
                 self.logger.debug(f"Found file: '{file_path}'")
 
         return files_paths
-
-    # def __load_cache(self):
-    #     self.logger.debug(
-    #         f"Loading '{self.config['extension']}' files from 'cache/{self.config['cache_file']}'")
-    #     cache_contents = self.cache_service.read(self.config['cache_file'])
-    #     cache_lines = cache_contents.split('\n')[:-1]
-    #     files_paths = {}
-    #     for line in cache_lines:
-    #         file_path, file_last_modified = line.split('|')
-    #         files_paths[file_path] = {
-    #             'last_modified': float(file_last_modified)
-    #         }
-    #     self.logger.debug(
-    #         f"Loaded {len(files_paths)} '{self.config['extension']}' files from 'cache/{self.config['cache_file']}'")
-
-    #     return files_paths
