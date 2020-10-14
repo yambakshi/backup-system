@@ -35,24 +35,24 @@ CONFIG = {
     },
     'drive': {
         'Google Doc': {
+            'extension': 'gdoc',
             'file_type': 'application/vnd.google-apps.document',
             'download_as': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'extension': 'docx',
             # 'download_as': 'application/pdf',
             # 'extension': 'pdf',
             'cache_file': r'drive.google-docs.cache',
         },
         'Google Sheet': {
+            'extension': 'gsheet',
             'file_type': 'application/vnd.google-apps.spreadsheet',
             'download_as': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'extension': 'xlsx',
             # 'download_as': 'application/pdf',
             # 'extension': 'pdf',
             'cache_file': r'drive.google-sheets.cache',
         },
         'PDF': {
-            'file_type': 'application/pdf',
             'extension': 'pdf',
+            'file_type': 'application/pdf',
             'cache_file': r'drive.pdf.cache',
         },
     }

@@ -10,106 +10,95 @@ from config.config import CONFIG
 
 
 GOOGLE_FILE_TYPES = [
-    'application/vnd.google-apps.document',
-    'application/vnd.google-apps.spreadsheet'
+    'Google Doc',
+    'Google Sheet'
 ]
 
 
 class GoogleDriveService:
-    def __init__(self, cache_service):
+    def __init__(self):
         self.logger = logging.getLogger('backup_system')
         self.drive = init_drive()
-        self.cache_service = cache_service
 
-    def download_changes(self, files_paths: {}):
-        self.logger.debug("Downloading modified files from 'Google Drive'")
-        self.files_paths = files_paths
-        downloads = {
-            'new': [],
-            'modified': []
-        }
+    def download_changes(self, diff: {}):
+        self.logger.debug("Downloading changes from 'drive'")
 
         # Reset tmp folder
         if os.path.isdir('./tmp'):
             shutil.rmtree(r'tmp')
         os.mkdir('tmp')
 
-        for file_type, files in files_paths['drive'].items():
-            for file_path, file_data in files.items():
-                # Make sure only files in 'drive_stream' that are Google Drive types (Google Doc, Google Sheet etc.) are downloaded
-                if not self.__file_in_space('drive_stream', file_path, file_type) or CONFIG['drive'][file_type]['file_type'] not in GOOGLE_FILE_TYPES:
-                    continue
+        downloads = {
+            'new': {
+                'google_type': {},
+                'non_google_type': {}
+            },
+            'modified': {
+                'google_type': {},
+                'non_google_type': {}
+            }
+        }
 
-                file_id, file_last_modified = file_data.values()
-                if not self.__file_in_space('local', file_path, file_type):
-                    downloads['new'].append(file_path)
-                    self.__download_file(file_id, file_type,
-                                         file_path, file_last_modified)
-                    continue
+        for diff_type, file_type in diff.items():
+            # You can't download files that were removed
+            if diff_type == 'remove':
+                continue
 
-                local_file_last_modified = files_paths['local'][file_type][file_path]['last_modified']
-                if file_last_modified <= local_file_last_modified:
-                    continue
+            for file_type, files in diff[diff_type].items():
+                for file_path, file_data in files.items():
+                    # Non-Google types (Google Doc, Google Sheet etc.) are not downloaded by copied from 'drive_stream'
+                    if file_type not in GOOGLE_FILE_TYPES:
+                        downloads[diff_type]['non_google_type'][file_path] = file_data
+                        continue
 
-                self.__download_file(file_id, file_type,
-                                     file_path, file_last_modified)
-                downloads['modified'].append(file_path)
+                    local_extension = CONFIG['local'][file_type]['extension']
+                    drive_extension = CONFIG['drive'][file_type]['extension']
+                    file_path = file_path.replace(
+                        drive_extension, local_extension)
+                    downloads[diff_type]['google_type'][file_path] = file_data
+                    self.__download_file(file_type, file_path, file_data)
 
-        modified_len = len(downloads['modified'])
-        if modified_len == 0:
+        new_len = len(downloads['new']['google_type'])
+        modified_len = len(downloads['modified']['google_type'])
+        if new_len == 0 and modified_len == 0:
             self.logger.debug(
-                "Nothing to download. All 'local' files are up-to-date")
+                "Nothing to download. 'local' is synced with 'drive'")
         else:
-            self.logger.debug(f"Downloaded {modified_len} modified files")
-
-        new_len = len(downloads['new'])
-        if new_len == 0:
-            self.logger.debug(
-                "Nothing to download. No new files were found on 'Google Drive'")
-        else:
-            self.logger.debug(f"Downloaded {new_len} new files")
+            if new_len > 0:
+                self.logger.debug(f"Downloaded {new_len} new files")
+            if modified_len > 0:
+                self.logger.debug(f"Downloaded {modified_len} modified files")
 
         return downloads
 
-    def scan(self, files_types: [], cache_scan: bool):
+    def scan(self, files_types: []):
         files_paths = {}
         for file_type in files_types:
-            self.logger.debug(
-                f"Searching '{file_type}' files on  'Google Drive'")
             self.config = CONFIG['drive'][file_type]
-            if self.cache_service.cache_exists(self.config['cache_file']):
-                files_paths[file_type] = self.__load_cache()
-            else:
-                files_paths[file_type] = self.__iterate_files(
-                    file_type, cache_scan)
+            files_paths[file_type] = self.__iterate_files(file_type)
 
         return files_paths
 
-    def __file_in_space(self, space, file_path: str, file_type: str):
-        # Create a list of all paths in the specified space for the specified file type
-        files_paths = list(self.files_paths[space][file_type].keys())
-        return file_path in files_paths
-
-    def __iterate_files(self, file_type: str, cache_scan: bool):
+    def __iterate_files(self, file_type: str):
         files_paths = {}
         page_token = None
 
         self.logger.debug(
-            f"Searching '{file_type}' files on 'Google Drive'")
+            f"Searching '{self.config['extension']}' files on 'Google Drive'")
 
         # Iterate files
         while True:
             results = self.__search_drive(None, page_token)
             files_paths = {
                 **files_paths,
-                **self.__process_results(results, cache_scan)
+                **self.__process_results(results)
             }
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 break
 
         self.logger.debug(
-            f"Downloaded {len(files_paths)} '{file_type}' files from 'Google Drive'")
+            f"Found {len(files_paths)} '{self.config['extension']}' files from 'Google Drive'")
         return files_paths
 
     def __search_drive(self, page_size: int, page_token):
@@ -124,7 +113,7 @@ class GoogleDriveService:
         results = self.drive.files().list(**search_params).execute()
         return results
 
-    def __process_results(self, results, cache_scan: bool):
+    def __process_results(self, results):
         files_paths = {}
         for file in results.get('files', []):
             file_id = file.get('id')
@@ -142,9 +131,9 @@ class GoogleDriveService:
 
             self.logger.debug(f"Found file: '{file_path}'")
 
-            if cache_scan:
-                self.cache_service.write(
-                    self.config['cache_file'], f"{file_path}|{file_last_modified_timestamp}|{file_id}")
+            # if cache_scan:
+            #     self.cache_service.write(
+            #         self.config['cache_file'], f"{file_path}|{file_last_modified_timestamp}|{file_id}")
             files_paths[file_path] = {
                 'id': file_id,
                 'last_modified': file_last_modified_timestamp
@@ -152,26 +141,27 @@ class GoogleDriveService:
 
         return files_paths
 
-    def __load_cache(self):
-        self.logger.debug(
-            f"Loading '{self.config['extension']}' files paths from 'cache/{self.config['cache_file']}'")
-        cache_contents = self.cache_service.read(self.config['cache_file'])
-        cache_lines = cache_contents.split('\n')[:-1]
-        files_paths = {}
-        for line in cache_lines:
-            file_path, file_last_modified, file_id = line.split('|')
+    # def __load_cache(self):
+    #     self.logger.debug(
+    #         f"Loading '{self.config['extension']}' files paths from 'cache/{self.config['cache_file']}'")
+    #     cache_contents = self.cache_service.read(self.config['cache_file'])
+    #     cache_lines = cache_contents.split('\n')[:-1]
+    #     files_paths = {}
+    #     for line in cache_lines:
+    #         file_path, file_last_modified, file_id = line.split('|')
 
-            files_paths[file_path] = {'id': file_id,
-                                      'last_modified': float(file_last_modified)}
-        self.logger.debug(
-            f"Loaded {len(files_paths)} '{self.config['extension']}' files from 'cache/{self.config['cache_file']}'")
+    #         files_paths[file_path] = {'id': file_id,
+    #                                   'last_modified': float(file_last_modified)}
+    #     self.logger.debug(
+    #         f"Loaded {len(files_paths)} '{self.config['extension']}' files from 'cache/{self.config['cache_file']}'")
 
-        return files_paths
+    #     return files_paths
 
-    def __download_file(self, file_id: str, file_type: str, file_path: str, file_last_modified: float):
-        tmp_abs_path = os.path.abspath('tmp')
-        request = self.drive.files().export_media(fileId=file_id,
+    def __download_file(self, file_type: str, file_path: str, file_data: {}):
+        self.logger.debug(f"Downloading '{file_path}'...")
+        request = self.drive.files().export_media(fileId=file_data['id'],
                                                   mimeType=CONFIG['drive'][file_type]['download_as'])
+
         file_directory_path = '/'.join(file_path.split('/')[:-1])
         Path(f"tmp/{file_directory_path}").mkdir(parents=True,
                                                  exist_ok=True)
@@ -180,13 +170,6 @@ class GoogleDriveService:
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            download_progress = "%d%%" % int(status.progress() * 100)
-
-            file_path_backslash = file_path.replace('/', '\\')
-            file_abs_path = f"{tmp_abs_path}\\{file_path_backslash}"
-            os.utime(file_abs_path, (file_last_modified, file_last_modified))
-            self.logger.debug(
-                f"Downloaded {download_progress} of '{file_path}'")
 
     def __query_directories_path(self, parent_directory_id: str, file_path: str):
         parent_directory = self.drive.files().get(
