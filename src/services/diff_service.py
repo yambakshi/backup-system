@@ -92,31 +92,7 @@ class DiffService:
                                         downloads_file_path, copy_file)
 
                     os.utime(local_file_path,
-                            (file_data['last_modified'], file_data['last_modified']))
-
-    def compare_spaces(self, space1: str, space2: str, files_paths: {}):
-        missing_files_paths = {}
-        for file_type, space1_files_paths in files_paths[space1].items():
-            missing_files_paths[file_type] = []
-            for space2_file_path in files_paths[space2][file_type]:
-                space1_extension = CONFIG[space1][file_type]['extension']
-                space2_extension = CONFIG[space2][file_type]['extension']
-                space2_file_path = space2_file_path.replace(
-                    space2_extension, space1_extension)
-
-                if not space2_file_path in space1_files_paths:
-                    missing_files_paths[file_type].append(space2_file_path)
-                    self.logger.debug(
-                        f"'{space2}' file path '{space2_file_path}' could not be found on '{space1}'")
-
-            if len(missing_files_paths[file_type]) == 0:
-                self.logger.debug(
-                    f"All '{file_type}' files paths from '{space2}' were found on '{space1}'")
-            else:
-                self.logger.debug(
-                    f"{len(missing_files_paths[file_type])} '{file_type}' files paths from '{space2}' were not found on '{space1}'")
-
-        return missing_files_paths
+                             (file_data['last_modified'], file_data['last_modified']))
 
     def __replace_file(self, old_file_path: str, new_file_path: str, copy_new_file: bool):
         self.logger.debug(

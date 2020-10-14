@@ -13,8 +13,8 @@ class BackupSystem:
     def __init__(self):
         self.logger = init_logger()
         self.cache_service = CacheService()
-        self.scan_service = ScanService(self.cache_service)
-        self.google_drive_service = GoogleDriveService(self.cache_service)
+        self.scan_service = ScanService()
+        self.google_drive_service = GoogleDriveService()
         self.diff_service = DiffService(self.cache_service)
 
     def backup_google_drive_files(self):
