@@ -21,6 +21,16 @@ class GoogleDriveService:
         self.drive = init_drive()
         self.cache_service = cache_service
 
+    def scan(self, load_cache: bool):
+        files_paths = {}
+        for file_type, config in CONFIG['drive'].items():
+            if load_cache and os.path.isfile(f"cache/{config['cache_file']}"):
+                files_paths[file_type] = self.__load_cache(config)
+            else:
+                files_paths[file_type] = self.__iterate_files(file_type)
+
+        return files_paths
+
     def download_changes(self, diff: {}):
         self.logger.debug("Downloading changes from 'drive'")
 
@@ -52,25 +62,10 @@ class GoogleDriveService:
             list(filter(lambda file_data: file_data['is_google_type'], diff['new'])))
         modified_len = len(
             list(filter(lambda file_data: file_data['is_google_type'], diff['modified'])))
-        if new_len == 0 and modified_len == 0:
-            self.logger.debug(
-                "Nothing to download. 'local' is synced with 'drive'")
-        else:
-            if new_len > 0:
-                self.logger.debug(f"Downloaded {new_len} new files")
-            if modified_len > 0:
-                self.logger.debug(f"Downloaded {modified_len} modified files")
-
-    def scan(self, files_types: [], load_cache: bool):
-        files_paths = {}
-        for file_type in files_types:
-            config = CONFIG['drive'][file_type]
-            if load_cache and os.path.isfile(f"cache/{config['cache_file']}"):
-                files_paths[file_type] = self.__load_cache(config)
-            else:
-                files_paths[file_type] = self.__iterate_files(file_type)
-
-        return files_paths
+        if new_len > 0:
+            self.logger.debug(f"Downloaded {new_len} new files")
+        if modified_len > 0:
+            self.logger.debug(f"Downloaded {modified_len} modified files")
 
     def __iterate_files(self, file_type: str):
         files_paths = {}
@@ -119,7 +114,8 @@ class GoogleDriveService:
                 file_last_modified, '%Y-%m-%dT%H:%M:%S.%f%z').timestamp()
             file_directory_path = self.__get_file_directory_path(
                 file_parents[0])
-            file_directory_path = '/'.join(file_directory_path.split('/')[1:])
+            file_directory_path = '\\'.join(
+                file_directory_path.split('\\')[1:])
             file_path = f"{file_directory_path}{file_name}"
             if file_type in GOOGLE_FILE_TYPES:
                 file_path = f"{file_path}.{file_extension}"
@@ -140,7 +136,7 @@ class GoogleDriveService:
         request = self.drive.files().export_media(fileId=file_data['id'],
                                                   mimeType=CONFIG['drive'][file_type]['download_as'])
 
-        file_directory_path = '/'.join(file_path.split('/')[:-1])
+        file_directory_path = '\\'.join(file_path.split('\\')[:-1])
         Path(f"tmp/{file_directory_path}").mkdir(parents=True,
                                                  exist_ok=True)
         fh = io.FileIO(f"tmp/{file_path}", 'wb')
@@ -174,7 +170,7 @@ class GoogleDriveService:
             parent_directory_id, [])
         directories_path = ''
         for directory in raw_directories_path:
-            directories_path = f"{directory['name']}/{directories_path}"
+            directories_path = f"{directory['name']}\\{directories_path}"
 
         return f"{directories_path}"
 

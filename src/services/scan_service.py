@@ -11,16 +11,16 @@ class ScanService:
 
     def scan(self, space: str, root_directory_path: str, load_cache: bool):
         all_files_paths = {}
-        for file_type, file_type_data in CONFIG[space].items():
-            self.config = file_type_data
+        for file_type, config in CONFIG[space].items():
+            self.config = config
             if load_cache and os.path.isfile(f"cache/{self.config['cache_file']}"):
                 files_paths = self.__load_cache(self.config)
             else:
                 self.logger.debug(
-                    f"Searching '{file_type_data['extension']}' files in '{root_directory_path}'")
+                    f"Searching '{config['extension']}' files in '{root_directory_path}'")
                 files_paths = self.__iterate_files(root_directory_path, {})
                 self.logger.debug(
-                    f"Found {len(files_paths)} '{file_type_data['extension']}' files in '{root_directory_path}'")
+                    f"Found {len(files_paths)} '{config['extension']}' files in '{root_directory_path}'")
 
             all_files_paths[file_type] = files_paths
 
@@ -31,13 +31,13 @@ class ScanService:
             if filename in self.config['excluded_directories']:
                 return files_paths
 
-            file_path = f"{parent_directory}/{filename}"
+            file_path = f"{parent_directory}\\{filename}"
             if os.path.isdir(file_path):
                 files_paths = self.__iterate_files(file_path, files_paths)
 
             extension = os.path.splitext(filename)[1][1:]
             if extension == self.config['extension']:
-                file_path_no_root = '/'.join(file_path.split('/')[2:])
+                file_path_no_root = '\\'.join(file_path.split('\\')[2:])
                 file_last_modified = os.stat(file_path).st_mtime
                 files_paths[file_path_no_root] = {
                     'last_modified': file_last_modified
