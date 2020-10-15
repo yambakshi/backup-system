@@ -8,7 +8,7 @@ class SnapshotService(FileIOService):
         super().__init__('snapshot')
 
     def read(self, snapshot_file: str):
-        super().read(snapshot_file)
+        return super().read(snapshot_file)
 
     def save(self, files_paths: {}):
         self.logger.debug("Saving snapshots")

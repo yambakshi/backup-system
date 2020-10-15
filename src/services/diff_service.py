@@ -46,7 +46,7 @@ class DiffService:
                         'path': snapshot_file_path
                     })
                     self.logger.debug(
-                        f"Removed file: '{file_path}'")
+                        f"Removed file: '{snapshot_file_path}'")
 
             for file_path, file_data in files.items():
                 # Only files found in 'drive_stream' are counted as diffs
@@ -93,15 +93,16 @@ class DiffService:
         for diff_type, files_data in diff.items():
             for file_data in files_data:
                 file_path = file_data['path']
-                if file_data['is_google_type']:
-                    downloads_file_path = f"{tmp_abs_path}\\{file_path}"
-                else:
-                    downloads_file_path = f"G:\\My Drive\\{file_path}"
 
                 local_file_path = f"D:\\Yam Bakshi\\{file_path}"
                 if diff_type == 'removed':
                     self.__remove_file(local_file_path)
                     continue
+
+                if file_data['is_google_type']:
+                    downloads_file_path = f"{tmp_abs_path}\\{file_path}"
+                else:
+                    downloads_file_path = f"G:\\My Drive\\{file_path}"
 
                 if diff_type == 'modified':
                     self.__replace_file(

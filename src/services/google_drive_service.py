@@ -24,7 +24,7 @@ class GoogleDriveService:
     def scan(self, load_cache: bool):
         files_paths = {}
         for file_type, config in CONFIG['drive'].items():
-            if load_cache and os.path.isfile(f"cache/{config['cache_file']}"):
+            if load_cache and os.path.isfile(f"caches/{config['cache_file']}"):
                 files_paths[file_type] = self.__load_cache(config)
             else:
                 files_paths[file_type] = self.__iterate_files(file_type)
@@ -176,7 +176,7 @@ class GoogleDriveService:
 
     def __load_cache(self, config: {}):
         self.logger.debug(
-            f"Loading '{config['extension']}' files from 'cache/{config['cache_file']}'")
+            f"Loading '{config['extension']}' files from 'caches/{config['cache_file']}'")
         cache_contents = self.cache_service.read(config['cache_file'])
         cache_lines = cache_contents.split('\n')[:-1]
         files_paths = {}
@@ -188,5 +188,5 @@ class GoogleDriveService:
             }
 
         self.logger.debug(
-            f"Loaded {len(files_paths)} '{config['extension']}' files from 'cache/{config['cache_file']}'")
+            f"Loaded {len(files_paths)} '{config['extension']}' files from 'caches/{config['cache_file']}'")
         return files_paths

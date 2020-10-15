@@ -25,8 +25,8 @@ class BackupSystem:
         try:
             self.logger.debug("Backing-up Google Drive files")
             files_paths = {
-                'drive_stream': self.scan_service.scan('drive_stream', r'G:/My Drive', self.load_cache),
-                'local': self.scan_service.scan('local', r'D:/Yam Bakshi', self.load_cache),
+                'drive_stream': self.scan_service.scan('drive_stream', 'G:\My Drive', self.load_cache),
+                'local': self.scan_service.scan('local', 'D:\Yam Bakshi', self.load_cache),
                 'drive': self.google_drive_service.scan(self.load_cache)
             }
 
@@ -35,18 +35,19 @@ class BackupSystem:
                 self.cache_service.save(files_paths)
 
             diff = self.diff_service.get_diff(files_paths)
-            if len(diff['new']) == 0 and len(diff['modified']) == 0 and len(diff['removed']) == 0:
+            if len(diff['new']) > 0 or len(diff['modified']) > 0:
+                self.google_drive_service.download_changes(diff)
+            elif len(diff['removed']) == 0:
                 self.logger.debug(
                     "Nothing to do. 'local' is synced with 'drive'")
                 return
+            
+            self.diff_service.merge_changes(diff)
+            self.snapshot_service.save(files_paths)
 
-            self.google_drive_service.download_changes(diff)
-            # self.diff_service.merge_changes(diff)
-            # self.snapshot_service.save(files_paths)
-
-            # # Cleanup
-            # self.__delete_tmp_folder()
-            # self.logger.debug('Backup completed succesfully')
+            # Cleanup
+            self.__delete_tmp_folder()
+            self.logger.debug('Backup completed succesfully')
         except Exception as err:
             self.logger.error(err)
 

@@ -8,7 +8,7 @@ class CacheService(FileIOService):
         super().__init__('cache')
 
     def read(self, cache_file: str):
-        super().read(cache_file)
+        return super().read(cache_file)
 
     def save(self, files_paths: {}):
         self.logger.debug("Saving caches")

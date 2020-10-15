@@ -13,7 +13,7 @@ class ScanService:
         all_files_paths = {}
         for file_type, config in CONFIG[space].items():
             self.config = config
-            if load_cache and os.path.isfile(f"cache/{self.config['cache_file']}"):
+            if load_cache and os.path.isfile(f"caches/{self.config['cache_file']}"):
                 files_paths = self.__load_cache(self.config)
             else:
                 self.logger.debug(
@@ -48,7 +48,7 @@ class ScanService:
         return files_paths
 
     def __load_cache(self, config: {}):
-        self.logger.debug(f"Loading '{config['extension']}' files from 'cache/{config['cache_file']}'")
+        self.logger.debug(f"Loading '{config['extension']}' files from 'caches/{config['cache_file']}'")
         cache_contents = self.cache_service.read(config['cache_file'])
         cache_lines = cache_contents.split('\n')[:-1]
         files_paths = {}
@@ -58,5 +58,5 @@ class ScanService:
                 'last_modified': float(file_last_modified)
             }
 
-        self.logger.debug(f"Loaded {len(files_paths)} '{config['extension']}' files from 'cache/{config['cache_file']}'")
+        self.logger.debug(f"Loaded {len(files_paths)} '{config['extension']}' files from 'caches/{config['cache_file']}'")
         return files_paths
