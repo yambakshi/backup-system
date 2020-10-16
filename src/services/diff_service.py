@@ -6,12 +6,6 @@ from shutil import copyfile
 from config.config import CONFIG
 
 
-GOOGLE_FILE_TYPES = [
-    'Google Doc',
-    'Google Sheet'
-]
-
-
 class DiffService:
     def __init__(self, snapshot_service):
         self.logger = logging.getLogger('backup_system')
@@ -25,10 +19,9 @@ class DiffService:
             'removed': []
         }
 
-        for file_type, files in files_paths['drive'].items():
-            # Get a list of 'drive_stream' files paths
-            drive_stream_files_paths = list(
-                files_paths['drive_stream'][file_type].keys())
+        for file_type, drive_files_paths in files_paths['drive'].items():
+            drive_stream_files_paths = files_paths['drive_stream'][file_type]
+            local_files_paths = files_paths['local'][file_type]
 
             # Get last 'drive' snapshot for the current file type
             snapshot_contents = self.snapshot_service.read(
@@ -36,35 +29,36 @@ class DiffService:
             snapshot_files_paths = [snapshot_file.split(
                 '|')[0] for snapshot_file in snapshot_contents.split('\n')[:-1]]
 
-            # Get a list of 'drive' files paths
-            drive_files_paths = list(files.keys())
-            for snapshot_file_path in snapshot_files_paths:
+            # Get 'drive' and 'local' extensions
+            drive_ext = CONFIG['drive'][file_type]['extension']
+            local_ext = CONFIG['local'][file_type]['extension']
+
+            # Iterating 'drive' snapshot files
+            for file_path in snapshot_files_paths:
                 # If snapshot file path is not in 'drive' files paths, it should be removed locally
-                if snapshot_file_path not in drive_files_paths:
+                if file_path not in drive_files_paths:
+                    local_file_path = file_path.replace(drive_ext, local_ext)
                     diff['removed'].append({
                         'type': file_type,
-                        'path': snapshot_file_path
+                        'path': local_file_path
                     })
                     self.logger.debug(
-                        f"Removed file: '{snapshot_file_path}'")
+                        f"Removed file: '{file_path}'")
 
-            for file_path, file_data in files.items():
+            # Iterating 'drive' files
+            for file_path, file_data in drive_files_paths.items():
                 # Only files found in 'drive_stream' are counted as diffs
                 if file_path not in drive_stream_files_paths:
                     continue
 
-                local_files_paths = files_paths['local'][file_type]
-                drive_extension = CONFIG['drive'][file_type]['extension']
-                local_extension = CONFIG['local'][file_type]['extension']
-                local_file_path = file_path.replace(
-                    drive_extension, local_extension)
+                # Replace 'drive' extension with 'local' extension
+                local_file_path = file_path.replace(drive_ext, local_ext)
 
                 # If file isn't found locally it's should be added locally
                 if local_file_path not in local_files_paths:
                     diff['new'].append({
                         'type': file_type,
-                        'path': file_path,
-                        'is_google_type': file_type in GOOGLE_FILE_TYPES,
+                        'path': local_file_path,
                         **file_data
                     })
                     self.logger.debug(
@@ -75,8 +69,7 @@ class DiffService:
                 if file_data['last_modified'] > local_files_paths[local_file_path]['last_modified']:
                     diff['modified'].append({
                         'type': file_type,
-                        'path': file_path,
-                        'is_google_type': file_type in GOOGLE_FILE_TYPES,
+                        'path': local_file_path,
                         **file_data
                     })
                     self.logger.debug(
@@ -118,7 +111,7 @@ class DiffService:
 
     def __replace_file(self, old_file_path: str, new_file_path: str, copy_new_file: bool):
         self.logger.debug(
-            f"Replacing '{old_file_path}' with '{new_file_path}'")
+            f"Replacing file: '{old_file_path}'")
         send2trash(old_file_path)
         if copy_new_file:
             copyfile(new_file_path, old_file_path)
@@ -136,6 +129,8 @@ class DiffService:
             os.rename(new_file_path, old_file_path)
 
     def __remove_file(self, file_path):
-        self.logger.debug(f"Removing file: {file_path}")
+        self.logger.debug(f"Removing file: '{file_path}'")
         if os.path.isfile(file_path):
             send2trash(file_path)
+        else:
+            self.logger.error(f"Couldn't find file to removing: '{file_path}'")

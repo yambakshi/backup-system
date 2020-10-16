@@ -6,13 +6,7 @@ import logging
 from googleapiclient.http import MediaIoBaseDownload
 from pathlib import Path
 from utils.google_drive import init_drive
-from config.config import CONFIG
-
-
-GOOGLE_FILE_TYPES = [
-    'Google Doc',
-    'Google Sheet'
-]
+from config.config import CONFIG, GOOGLE_FILE_TYPES
 
 
 class GoogleDriveService:
@@ -48,13 +42,6 @@ class GoogleDriveService:
                 if not file_data['is_google_type']:
                     continue
 
-                # Replace file's drive extension with local extension
-                file_type = file_data['type']
-                local_extension = CONFIG['local'][file_type]['extension']
-                drive_extension = CONFIG['drive'][file_type]['extension']
-                file_data['path'] = file_data['path'].replace(
-                    drive_extension, local_extension)
-
                 # Download file
                 self.__download_file(file_data)
 
@@ -62,10 +49,13 @@ class GoogleDriveService:
             list(filter(lambda file_data: file_data['is_google_type'], diff['new'])))
         modified_len = len(
             list(filter(lambda file_data: file_data['is_google_type'], diff['modified'])))
-        if new_len > 0:
-            self.logger.debug(f"Downloaded {new_len} new files")
-        if modified_len > 0:
-            self.logger.debug(f"Downloaded {modified_len} modified files")
+        if new_len == 0 and modified_len == 0:
+            self.logger.debug(f"Nothing to download")
+        else:
+            if new_len > 0:
+                self.logger.debug(f"Downloaded {new_len} new files")
+            if modified_len > 0:
+                self.logger.debug(f"Downloaded {modified_len} modified files")
 
     def __iterate_files(self, file_type: str):
         files_paths = {}
@@ -110,20 +100,28 @@ class GoogleDriveService:
             file_name = file.get('name')
             file_parents = file.get('parents')
             file_last_modified = file.get('modifiedTime')
+
+            # Get file's last modified timestamp
             file_last_modified_timestamp = datetime.datetime.strptime(
                 file_last_modified, '%Y-%m-%dT%H:%M:%S.%f%z').timestamp()
+
+            # Get file's directory path
             file_directory_path = self.__get_file_directory_path(
                 file_parents[0])
             file_directory_path = '\\'.join(
                 file_directory_path.split('\\')[1:])
+
+            # Check if file's type is a google file type
             file_path = f"{file_directory_path}{file_name}"
-            if file_type in GOOGLE_FILE_TYPES:
+            is_google_type = file_type in GOOGLE_FILE_TYPES
+            if is_google_type:
                 file_path = f"{file_path}.{file_extension}"
 
             self.logger.debug(f"Found file: '{file_path}'")
             files_paths[file_path] = {
                 'id': file_id,
-                'last_modified': file_last_modified_timestamp
+                'last_modified': file_last_modified_timestamp,
+                'is_google_type': is_google_type
             }
 
         return files_paths
@@ -137,9 +135,9 @@ class GoogleDriveService:
                                                   mimeType=CONFIG['drive'][file_type]['download_as'])
 
         file_directory_path = '\\'.join(file_path.split('\\')[:-1])
-        Path(f"tmp/{file_directory_path}").mkdir(parents=True,
-                                                 exist_ok=True)
-        fh = io.FileIO(f"tmp/{file_path}", 'wb')
+        Path(f"tmp\\{file_directory_path}").mkdir(parents=True,
+                                                  exist_ok=True)
+        fh = io.FileIO(f"tmp\\{file_path}", 'wb')
         downloader = MediaIoBaseDownload(fh, request)
         done = False
         while done is False:

@@ -34,6 +34,7 @@ class BackupSystem:
             if not self.load_cache:
                 self.cache_service.save(files_paths)
 
+            # Get the diff between 'drive' to 'local'
             diff = self.diff_service.get_diff(files_paths)
             if len(diff['new']) > 0 or len(diff['modified']) > 0:
                 self.google_drive_service.download_changes(diff)
@@ -42,7 +43,10 @@ class BackupSystem:
                     "Nothing to do. 'local' is synced with 'drive'")
                 return
             
+            # Merge diff to 'local'
             self.diff_service.merge_changes(diff)
+
+            # Save files paths snapshots of all spaces
             self.snapshot_service.save(files_paths)
 
             # Cleanup

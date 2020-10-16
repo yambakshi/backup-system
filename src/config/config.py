@@ -1,3 +1,9 @@
+GOOGLE_FILE_TYPES = [
+    'Google Doc',
+    'Google Sheet'
+]
+
+
 CONFIG = {
     'local': {
         'Google Doc': {
