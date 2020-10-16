@@ -1,6 +1,8 @@
 import os
 import logging
 import shutil
+import sys
+import traceback
 from utils.logger import init_logger
 from services.snapshot_service import SnapshotService
 from services.cache_service import CacheService
@@ -42,7 +44,7 @@ class BackupSystem:
                 self.logger.debug(
                     "Nothing to do. 'local' is synced with 'drive'")
                 return
-            
+
             # Merge diff to 'local'
             self.diff_service.merge_changes(diff)
 
@@ -53,13 +55,13 @@ class BackupSystem:
             self.__delete_tmp_folder()
             self.logger.debug('Backup completed succesfully')
         except Exception as err:
-            self.logger.error(err)
+            self.logger.exception(err)
 
     def backup_local_files(self):
         try:
             self.logger.debug("Backing-up local files")
         except Exception as err:
-            self.logger.error(err)
+            self.logger.exception(err)
 
     def __delete_tmp_folder(self):
         if os.path.exists('./tmp'):

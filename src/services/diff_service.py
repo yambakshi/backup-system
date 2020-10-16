@@ -122,6 +122,11 @@ class DiffService:
         old_file_path_parent = '\\'.join(old_file_path.split('\\')[:-1])
         self.logger.debug(
             f"Adding file '{new_file_path}' to '{old_file_path_parent}'")
+
+        if os.path.isfile(new_file_path):
+            self.logger.debug(f"File already exists: '{new_file_path}'")
+            return
+
         Path(old_file_path_parent).mkdir(parents=True, exist_ok=True)
         if copy_new_file:
             copyfile(new_file_path, old_file_path)
