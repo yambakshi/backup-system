@@ -1,5 +1,6 @@
 # Backup System
 Backup system for backing up Google Drive files and local files.
+
 This project was generated with:
 - Python version: 3.9.0
 
@@ -58,7 +59,7 @@ touch main.py
    ```
 
 ## Requirements
-Updating `requirements.txt` with currently installed pip packages (-l or --local flag to save only local packages and not global):
+Updating `requirements.txt` with currently installed `pip` packages (-l or --local flag to save only local packages and not global):
 ```
 pip freeze -l > requirements.txt
 ```
