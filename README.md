@@ -6,46 +6,51 @@ Backup system for `Google Drive` and local files.
 
 ## Setup
 ### 1. Virtual Environment
-1. Create the project's virtual environment `env` by running the following in the repo's root directory:
+Open `VSCode` from the repo's root, open the terminal, and create a virtual environment named `env`:
 ```
 python -m venv env
 ```
-2. Check the current execution policy (in order to activate the `venv` in `VSCode`'s terminal you'll first need to enable running powershell scripts):
-```
-get-executionpolicy
-```
-3. The default execution policy, `Restricted`, is preventing you from running the `venv` activation script that's in:
-```    
-env/Scripts/Activate.ps1
-```
-4. Set the execution policy for the current user to `RemoteSigned`:
-```
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-5. Activate the `venv`:
-```
-env/Scripts/Activate.ps1
-```
+**Windows 10**
+1. Check the current execution policy (in order to activate the virtual environment in `VSCode`'s terminal you'll first need to enable running powershell scripts):
+   ```
+   get-executionpolicy
+   ```
+2. The default execution policy, `Restricted`, is preventing you from running the virtual environment's activation script that's in:
+   ```
+   env/Scripts/Activate.ps1
+   ```
+3. Set the execution policy for the current user to `RemoteSigned`:
+   ```
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+4. Activate the virtual environment:
+   ```
+   env/Scripts/Activate.ps1
+   ```
 **Usefull Commands**
-- Deactivate the `venv`:
-```
-deactivate
-```
+- Deactivate the virtual environment:
+   ```
+   deactivate
+   ```
 
 ### 2. Requirements
-1. Before installing the requirements, make sure that the `venv` is activated (notice the `(env)` in the beginning):
-```
-(env) PS D:\Yam Bakshi\Careers\Hi-Tech\Portfolio\Python\Backup System >
-```
+1. Before installing the requirements, make sure that the virtual environment is activated (notice the `(env)` in the beginning):
+   ```
+   (env) PS D:\Yam Bakshi\Careers\Hi-Tech\Portfolio\Python\Backup System >
+   ```
 2. Install `requirements.txt` packages:
-```
-pip install -r requirements.txt
-```
-**Useful Commands**
+   ```
+   pip install -r requirements.txt
+   ```
+
+**Useful Commands & Info**
 - Updating `requirements.txt` with currently installed `pip` packages (-l or --local flag to save only local packages and not global):
-```
-pip freeze -l > requirements.txt
-```
+   ```
+   pip freeze -l > requirements.txt
+   ```
+- Windows 10 `pip` packages folders:
+   - Virtual Environment - `<repo_root>\env\Lib\site-packages`
+   - Global - `C:\Program Files\Python39\Lib\site-packages`
 
 
 ### 3. Google API Authentication
@@ -59,15 +64,15 @@ rm -rf ./authentication/token.pickle
 ```
 
 ### 4. VSCode Python Interpreter
-To select the `venv`'s interperter in `VSCode`:
+To select the virtual environment's interperter in `VSCode`:
 1. Hit `Ctrl`+`Shift`+`P`.
 2. Type `Python: Select Interpreter` and hit `Enter` to edit the setting.
 3. Select `Python 3.9.0 ('env':venv) '.\env\Scripts\python.exe`.
 
-### 5. Run
+## Run
 ```
 python ./src/main.py --google-drive
-## or
+# or
 python ./src/main.py --local
 ```
 
@@ -103,7 +108,6 @@ The Backup System currently supports 3 file types:
 2. Google Sheet
 3. PDF
 
-## Step-by-Step
 ### Google Drive Backup
 When running the Backup System with the `--google-drive` flag, the backup system will:
 1. Scan all 3 spaces, or load the cached scans if `load_cache` is `True`.
