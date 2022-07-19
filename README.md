@@ -116,12 +116,12 @@ The Backup System currently supports 3 file types:
 
 ### Data Structure
 The `files_paths` data structure:
-- <space> (`drive_stream`, `local`, `drive`)
-   - <file_type> (`Google Doc`, `Google Sheet`, `PDF`)
-      - <file_path> (_Car\Licenses\2020-2021.pdf_)
-         - id: **string**
+- **space** (e.g `drive_stream`, `local`, `drive`)
+   - **file_type** (e.g `Google Doc`, `Google Sheet`, `PDF`)
+      - **file_path** (e.g _Car\Licenses\2020-2021.pdf_)
+         - id: **string** (`drive` only - each `Google Drive` file has a unique ID)
          - last_modified: **number**
-         - is_google_type: **boolean**
+         - is_google_type: **boolean** (`drive` only - `gsheet` and `gdoc` are google types but `pdf` is not)
 
 ### Google Drive Backup
 When running the Backup System with the `--google-drive` flag, the backup system will:
