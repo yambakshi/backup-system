@@ -34,7 +34,7 @@ python -m venv env
    ```
 
 ### 2. Requirements
-1. Before installing the requirements, make sure that the virtual environment is activated (notice the `(env)` in the beginning):
+1. Before installing the requirements, make sure that the `env` virtual environment is activated (notice the `(env)` in the beginning):
    ```
    (env) PS D:\Yam Bakshi\Careers\Hi-Tech\Portfolio\Python\Backup System >
    ```
@@ -64,7 +64,7 @@ rm -rf ./authentication/token.pickle
 ```
 
 ### 4. VSCode Python Interpreter
-To select the virtual environment's interperter in `VSCode`:
+Set the virtual environment's interperter in `VSCode`:
 1. Hit `Ctrl`+`Shift`+`P`.
 2. Type `Python: Select Interpreter` and hit `Enter` to edit the setting.
 3. Select `Python 3.9.0 ('env':venv) '.\env\Scripts\python.exe`.
@@ -93,20 +93,35 @@ Scans are cached so that you won't have to scan all 3 spaces everytime you run t
 
 If you want to use the cached scans in your next backup instead of re-scanning, simply set the `load_cache` member of the `backup_system` class to `True` (default is `False`).
 
+Each line in the cache file is a list of metadata values separated by `|` of a single scanned file:
+- file_path
+- last_modified
+- id (`drive` cache only - each `Google Drive` file has a unique ID)
+- is_google_type (`drive` cache only - `gsheet` and `gdoc` are google types but `pdf` is not)
+
 ### Snapshots
 What are snapshots?
 
 ### Diff
 There are 3 diff types:
-1. `new` - Files that exist in `Google Drive` but don't exist in `D:/` in the same paths.
-2. `modified` - Files that exist on the same paths both in `Google Drive` and in `D:/` but that their `last_modified` is different.
-3. `removed` - Files that don't exist in `Google Drive` but exist in `D:/` in the same paths.
+- `new` - Files that exist in `Google Drive` but don't exist in `D:/` in the same paths.
+- `modified` - Files that exist on the same paths both in `Google Drive` and in `D:/` but that their `last_modified` is different.
+- `removed` - Files that don't exist in `Google Drive` but exist in `D:/` in the same paths.
 
 ### File Types
 The Backup System currently supports 3 file types:
-1. Google Doc
-2. Google Sheet
-3. PDF
+- Google Doc
+- Google Sheet
+- PDF
+
+### Data Structure
+The `files_paths` data structure:
+- <space> (`drive_stream`, `local`, `drive`)
+   - <file_type> (`Google Doc`, `Google Sheet`, `PDF`)
+      - <file_path> (_Car\Licenses\2020-2021.pdf_)
+         - id: **string**
+         - last_modified: **number**
+         - is_google_type: **boolean**
 
 ### Google Drive Backup
 When running the Backup System with the `--google-drive` flag, the backup system will:
@@ -114,9 +129,9 @@ When running the Backup System with the `--google-drive` flag, the backup system
 2. Compare the scans.
 3. Download `new` and `modified` files from `Google Drive` and save them in a `./tmp` folder under their correlating paths.
 4. Merge the diff into the local `D:/` drive, as follows:
-   1. `new` - Moves the downloaded files from the `./tmp` folder to their destination folders.
-   2. `modified` - Moves the downloaded files from the `./tmp` folder to their destination folders replacing the old files.
-   3. `removed` - Deletes from the local `D:/` drive.
+   - `new` - Moves the downloaded files from the `./tmp` folder to their destination folders.
+   - `modified` - Moves the downloaded files from the `./tmp` folder to their destination folders replacing the old files.
+   - `removed` - Deletes from the local `D:/` drive.
 5. Save snapshots of the current files state for future comparisons.
 
 ### Local Backup
