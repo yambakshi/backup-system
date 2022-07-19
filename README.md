@@ -1,5 +1,5 @@
 # Backup System
-Backup system for backing up Google Drive files and local files.
+Backup system for `Google Drive` files and local files.
 
 This project was generated with:
 - Python version: 3.9.0
@@ -114,8 +114,8 @@ There are 3 spaces:
 - drive - `Google Drive`
 
 ### Caches
-Scans are cached so that you won't have to scan all 3 spaces everytime you want to backup.
-If you'd like to load the scans caches in your next backup instead of re-scanning, simply set the `load_cache` member of the `backup_system` class to `True` (default is `False`).
+Scans are cached so that you won't have to scan all 3 spaces everytime you run the backup system.
+If you want to use the cached scans in your next backup instead of re-scanning, simply set the `load_cache` member of the `backup_system` class to `True` (default is `False`).
 
 ### Snapshots
 What are snapshots?
@@ -134,9 +134,9 @@ There are currently 3 suppoerted file types:
 
 ### Step-by-Step: Google Drive Backup
 Upon running the Backup System with the `--google-drive` flag, the backup system will:
-1. Scan all 3 spaces, or load the scans caches if `load_cache` is `True`.
+1. Scan all 3 spaces, or load the cached scans if `load_cache` is `True`.
 2. Compare the scans.
-3. Download `new` and `modified` files from `Google Drive` and saves them in a `./tmp` folder under their correlating paths.
+3. Download `new` and `modified` files from `Google Drive` and save them in a `./tmp` folder under their correlating paths.
 4. Merge the diff into the local `D:/` drive, as follows:
    1. `new` - Moves the downloaded files from the `./tmp` folder to their destination folders.
    2. `modified` - Moves the downloaded files from the `./tmp` folder to their destination folders replacing the old files.
