@@ -1,70 +1,38 @@
 # Backup System
-Backup system for `Google Drive` files and local files.
+Backup system for `Google Drive` and local files.
 
-This project was generated with:
-- Python version: 3.9.0
+## Technologies
+- Python 3.9.0
 
-## Installing & Running
-### Setup
-1. Open `cmd` and navigate to the projects folder:
-```
-cd "Python Projects"
-```
-
-2. Create project folder:
-```
-mkdir "Backup System"
-```
-
-3. Clone repo into project folder `Backup System`:
-```
-git clone https://github.com/yambakshi/backup-system.git .
-```
-
-4. Create project virtual environment `env`:
+## Setup
+### 1. Virtual Environment
+1. Create the project's virtual environment `env` by running the following in the repo's root directory:
 ```
 python -m venv env
 ```
+2. Check the current execution policy (in order to activate the `venv` in `VSCode`'s terminal you'll first need to enable running powershell scripts):
+```
+get-executionpolicy
+```
+3. The default execution policy, `Restricted`, is preventing you from running the `venv` activation script that's in:
+```    
+env/Scripts/Activate.ps1
+```
+4. Set the execution policy for the current user to `RemoteSigned`:
+```
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+5. Activate the `venv`:
+```
+env/Scripts/Activate.ps1
+```
+**Usefull Commands**
+- Deactivate the `venv`:
+```
+deactivate
+```
 
-5. Open `VSCode` in project folder:
-```
-code .
-```
-
-6. In `VSCode` create `src` folder in the project directory:
-```
-mkdir src
-```
-
-7. Create `main.py` in `src` folder in order for `VSCode`'s python extension to recognize the `env` virtual environment and set its interpertor to the `venv`'s interperter:
-```
-touch main.py
-```
-
-8. In order to activate the `venv` in `VSCode`'s terminal you'll first need to enable running powershell scripts.
-   1. First check what's the current policy by running:
-   ```
-   get-executionpolicy
-   ```
-   2. The output should be `Restricted` which is the default policy that's preventing you from running the `venv` activation script that's located in:
-   ```    
-   env/Scripts/Activate.ps1
-   ```
-   3. To change the execution policy run:
-   ```
-   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-   4. Then activate `venv` by running:
-   ```
-   env/Scripts/Activate.ps1
-   ```
-   5. Deactivate the `venv` by running:
-   ```
-   deactivate
-   ```
-
-### Requirements
-#### Install Requirements
+### 2. Requirements
 1. Before installing the requirements, make sure that the `venv` is activated (notice the `(env)` in the beginning):
 ```
 (env) PS D:\Yam Bakshi\Careers\Hi-Tech\Portfolio\Python\Backup System >
@@ -73,40 +41,42 @@ touch main.py
 ```
 pip install -r requirements.txt
 ```
-#### Updating Requirements
-Updating `requirements.txt` with currently installed `pip` packages (-l or --local flag to save only local packages and not global):
+**Useful Commands**
+- Updating `requirements.txt` with currently installed `pip` packages (-l or --local flag to save only local packages and not global):
 ```
 pip freeze -l > requirements.txt
 ```
 
 
-### Google API Authentication
+### 3. Google API Authentication
 The `Google API` authentication is done with the `./authentication/credentials.json` file.
+
 The first time you authenticate, a `token.pickle` file will be generated and saved in the `./authentication` folder.
+
 The `token.pickle` will expire after some time, so you'll have to delete it manually in order for a new one to be generated:
 ```
 rm -rf ./authentication/token.pickle
 ```
 
-### VSCode Python Interpreter
+### 4. VSCode Python Interpreter
 To select the `venv`'s interperter in `VSCode`:
 1. Hit `Ctrl`+`Shift`+`P`.
 2. Type `Python: Select Interpreter` and hit `Enter` to edit the setting.
 3. Select `Python 3.9.0 ('env':venv) '.\env\Scripts\python.exe`.
 
-### Run
-- `Google Drive` backup to local drive `D:/`
-```
-python ./src/main.py --local
-```
-- `Local` backup to external drive `F:/`
+### 5. Run
 ```
 python ./src/main.py --google-drive
+## or
+python ./src/main.py --local
 ```
 
-Add merge_diff param
+## Knowledge Base
+### Flags
+There are 2 flags you can pass to the Backup System:
+- `--google-drive` - Backup `Google Drive` files to local drive `D:/`
+- `--local` - Backup local files to external drive `F:/`
 
-## Terms & Walkthrough
 ### Spaces
 There are 3 spaces:
 - local - `D:/`
@@ -115,6 +85,7 @@ There are 3 spaces:
 
 ### Caches
 Scans are cached so that you won't have to scan all 3 spaces everytime you run the backup system.
+
 If you want to use the cached scans in your next backup instead of re-scanning, simply set the `load_cache` member of the `backup_system` class to `True` (default is `False`).
 
 ### Snapshots
@@ -127,13 +98,14 @@ There are 3 diff types:
 3. `removed` - Files that don't exist in `Google Drive` but exist in `D:/` in the same paths.
 
 ### File Types
-There are currently 3 suppoerted file types:
+The Backup System currently supports 3 file types:
 1. Google Doc
 2. Google Sheet
 3. PDF
 
-### Step-by-Step: Google Drive Backup
-Upon running the Backup System with the `--google-drive` flag, the backup system will:
+## Step-by-Step
+### Google Drive Backup
+When running the Backup System with the `--google-drive` flag, the backup system will:
 1. Scan all 3 spaces, or load the cached scans if `load_cache` is `True`.
 2. Compare the scans.
 3. Download `new` and `modified` files from `Google Drive` and save them in a `./tmp` folder under their correlating paths.
@@ -141,4 +113,8 @@ Upon running the Backup System with the `--google-drive` flag, the backup system
    1. `new` - Moves the downloaded files from the `./tmp` folder to their destination folders.
    2. `modified` - Moves the downloaded files from the `./tmp` folder to their destination folders replacing the old files.
    3. `removed` - Deletes from the local `D:/` drive.
-5. Finally, save snapshots of the current files state for future comparisons.
+5. Save snapshots of the current files state for future comparisons.
+
+### Local Backup
+When running the Backup System with the `--local` flag, the backup system will:
+> NOT YET IMPLEMENTED
