@@ -14,9 +14,14 @@ class FileIOService:
             Path(self.files_directory).mkdir(parents=True, exist_ok=True)
 
     def read(self, file_path: str):
-        with io.open(f"{self.files_directory}/{file_path}", "r", encoding="utf8") as f:
-            contents = f.read()
-            return contents
+        full_file_path = f"{self.files_directory}/{file_path}"
+        try:
+            with io.open(full_file_path, "r", encoding="utf8") as f:
+                contents = f.read()
+                return contents
+        except FileNotFoundError as err:
+            self.logger.error(f"Couldn't find file: '{full_file_path}'")
+            return ''
 
     def save(self, files_paths: {}):
         for space, files_types in files_paths.items():

@@ -23,15 +23,15 @@ class DiffService:
             drive_stream_files_paths = files_paths['drive_stream'][file_type]
             local_files_paths = files_paths['local'][file_type]
 
+            # Get 'drive' and 'local' extensions
+            drive_ext = CONFIG['drive'][file_type]['extension']
+            local_ext = CONFIG['local'][file_type]['extension']
+
             # Get last 'drive' snapshot for the current file type
             snapshot_contents = self.snapshot_service.read(
                 CONFIG['drive'][file_type]['snapshot_file'])
             snapshot_files_paths = [snapshot_file.split(
                 '|')[0] for snapshot_file in snapshot_contents.split('\n')[:-1]]
-
-            # Get 'drive' and 'local' extensions
-            drive_ext = CONFIG['drive'][file_type]['extension']
-            local_ext = CONFIG['local'][file_type]['extension']
 
             # Iterating 'drive' snapshot files
             for file_path in snapshot_files_paths:
@@ -65,7 +65,7 @@ class DiffService:
                         f"New file: '{file_path}'")
                     continue
 
-                # If file is found locally and its last modified is before the 'drive' file's last modified, it's modified
+                # If file is found locally and its 'last_modified' date is before the 'drive' file's 'last_modified', it's modified
                 if file_data['last_modified'] > local_files_paths[local_file_path]['last_modified']:
                     diff['modified'].append({
                         'type': file_type,
@@ -138,4 +138,4 @@ class DiffService:
         if os.path.isfile(file_path):
             send2trash(file_path)
         else:
-            self.logger.error(f"Couldn't find file to removing: '{file_path}'")
+            self.logger.error(f"Couldn't find file: '{file_path}'")

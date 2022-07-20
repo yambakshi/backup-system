@@ -21,12 +21,15 @@ def init_drive():
 
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
+        # If current 'token.pickle' file is expired, delete it and a new one will be generated
         if creds and creds.expired and creds.refresh_token:
+            # TODO: Delete current token.pickle and generate a new one
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 'authentication/credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
+
         # Save the credentials for the next run
         with open('authentication/token.pickle', 'wb') as token:
             pickle.dump(creds, token)

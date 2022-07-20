@@ -179,7 +179,8 @@ class GoogleDriveService:
         cache_lines = cache_contents.split('\n')[:-1]
         files_paths = {}
         for line in cache_lines:
-            file_path, file_id, file_last_modified, is_google_type = line.split('|')
+            file_path, file_id, file_last_modified, is_google_type = line.split(
+                '|')
             files_paths[file_path] = {
                 'id': file_id,
                 'last_modified': float(file_last_modified),
