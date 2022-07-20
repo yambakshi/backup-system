@@ -33,24 +33,26 @@ python -m venv env
    deactivate
    ```
 
-### 2. Requirements
-1. Before installing the requirements, make sure that the `env` virtual environment is activated (notice the `(env)` in the beginning):
+### 2. PIP Packages
+1. Before installing the `pip` packages, make sure that the `env` virtual environment is activated (notice the `(env)` in the beginning):
    ```
    (env) PS D:\Yam Bakshi\Careers\Hi-Tech\Portfolio\Python\Backup System >
    ```
-2. Install `requirements.txt` packages:
+2. Install `pip` packages:
    ```
    pip install -r requirements.txt
    ```
+   
+**Windows 10**
+`pip` packages folders:
+- Virtual Environment - `<repo_root>\env\Lib\site-packages`
+- Global - `C:\Program Files\Python39\Lib\site-packages`
 
-**Useful Commands & Info**
+**Useful Commands**
 - Updating `requirements.txt` with currently installed `pip` packages (-l or --local flag to save only local packages and not global):
    ```
    pip freeze -l > requirements.txt
    ```
-- Windows 10 `pip` packages folders:
-   - Virtual Environment - `<repo_root>\env\Lib\site-packages`
-   - Global - `C:\Program Files\Python39\Lib\site-packages`
 
 
 ### 3. Google API Authentication
@@ -84,9 +86,9 @@ There are 2 flags you can pass to the Backup System:
 
 ### Spaces
 There are 3 spaces:
-- local - `D:/`
-- drive_stream - `G:/`
-- drive - `Google Drive`
+- **local** - `D:/`
+- **drive_stream** - `G:/`
+- **drive** - `Google Drive`
 
 ### Caches
 Scans are cached so that you won't have to scan all 3 spaces everytime you run the backup system.
@@ -94,10 +96,10 @@ Scans are cached so that you won't have to scan all 3 spaces everytime you run t
 If you want to use the cached scans in your next backup instead of re-scanning, simply set the `load_cache` member of the `backup_system` class to `True` (default is `False`).
 
 Each line in the cache file is a list of metadata values separated by `|` of a single scanned file:
-- file_path
-- last_modified
-- id (`drive` cache only - each `Google Drive` file has a unique ID)
-- is_google_type (`drive` cache only - `gsheet` and `gdoc` are google types but `pdf` is not)
+- **file_path**
+- **last_modified**
+- **id** (`drive` cache only - each `Google Drive` file has a unique ID)
+- **is_google_type** (`drive` cache only - `gsheet` and `gdoc` are google types but `pdf` is not)
 
 ### Snapshots
 What are snapshots?
@@ -110,18 +112,18 @@ There are 3 diff types:
 
 ### File Types
 The Backup System currently supports 3 file types:
-- Google Doc
-- Google Sheet
-- PDF
+- **Google Doc**
+- **Google Sheet**
+- **PDF**
 
 ### Data Structure
 The `files_paths` data structure:
 - **space** (e.g. `drive_stream`, `local`, `drive`)
    - **file_type** (e.g. `Google Doc`, `Google Sheet`, `PDF`)
       - **file_path** (e.g. _Car\Licenses\2020-2021.pdf_)
-         - last_modified: **number**
-         - id: **string** (`drive` only - each `Google Drive` file has a unique ID)
-         - is_google_type: **boolean** (`drive` only - `gsheet` and `gdoc` are google types but `pdf` is not)
+         - **last_modified**: _number_
+         - **id**: _string_ (`drive` only - each `Google Drive` file has a unique ID)
+         - **is_google_type**: _boolean_ (`drive` only - `gsheet` and `gdoc` are google types but `pdf` is not)
 
 ### Google Drive Backup
 When running the Backup System with the `--google-drive` flag, the backup system will:
