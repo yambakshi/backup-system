@@ -44,9 +44,9 @@ python -m venv env
    ```
    
 **Windows 10**
-`pip` packages folders:
-- Virtual Environment - `<repo_root>\env\Lib\site-packages`
-- Global - `C:\Program Files\Python39\Lib\site-packages`
+- `pip` packages folders:
+   - Virtual Environment - `<repo_root>\env\Lib\site-packages`
+   - Global - `C:\Program Files\Python39\Lib\site-packages`
 
 **Useful Commands**
 - Updating `requirements.txt` with currently installed `pip` packages (-l or --local flag to save only local packages and not global):
