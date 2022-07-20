@@ -67,7 +67,7 @@ rm -rf ./authentication/token.pickle
 Set the virtual environment's interperter in `VSCode`:
 1. Hit `Ctrl`+`Shift`+`P`.
 2. Type `Python: Select Interpreter` and hit `Enter` to edit the setting.
-3. Select `Python 3.9.0 ('env':venv) '.\env\Scripts\python.exe`.
+3. Select `Python 3.9.0 ('env':venv) .\env\Scripts\python.exe`.
 
 ## Run
 ```
@@ -116,11 +116,11 @@ The Backup System currently supports 3 file types:
 
 ### Data Structure
 The `files_paths` data structure:
-- **space** (e.g `drive_stream`, `local`, `drive`)
-   - **file_type** (e.g `Google Doc`, `Google Sheet`, `PDF`)
-      - **file_path** (e.g _Car\Licenses\2020-2021.pdf_)
-         - id: **string** (`drive` only - each `Google Drive` file has a unique ID)
+- **space** (e.g. `drive_stream`, `local`, `drive`)
+   - **file_type** (e.g. `Google Doc`, `Google Sheet`, `PDF`)
+      - **file_path** (e.g. _Car\Licenses\2020-2021.pdf_)
          - last_modified: **number**
+         - id: **string** (`drive` only - each `Google Drive` file has a unique ID)
          - is_google_type: **boolean** (`drive` only - `gsheet` and `gdoc` are google types but `pdf` is not)
 
 ### Google Drive Backup
