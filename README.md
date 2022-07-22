@@ -91,9 +91,7 @@ There are 3 spaces:
 - **drive** - `Google Drive`
 
 ### Caches
-Scans are cached so that you won't have to scan all 3 spaces everytime you run the backup system.
-
-If you want to use the cached scans in your next backup instead of re-scanning, simply set the `load_cache` member of the `backup_system` class to `True` (default is `False`).
+Scans are cached so you won't have to scan all 3 spaces everytime you run the backup system.
 
 Each line in the cache file is a list of metadata values separated by `|` of a single scanned file:
 - **file_path**

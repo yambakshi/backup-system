@@ -18,7 +18,7 @@ class DiffService:
             'removed': []
         }
 
-        old_lengths = {
+        prev_diff_lengths = {
             'new': 0,
             'modified': 0,
             'removed': 0
@@ -49,8 +49,8 @@ class DiffService:
                     continue
 
             self.logger.debug(
-                f"Total {len(diff['removed']) - old_lengths['removed']} removed '{file_type}' files in 'local'")
-            old_lengths['removed'] = len(diff['removed'])
+                f"Found {len(diff['removed']) - prev_diff_lengths['removed']} removed '{file_type}' files in 'drive'")
+            prev_diff_lengths['removed'] = len(diff['removed'])
 
         # Iterating 'drive' file types
         for file_type, drive_files_paths in scan_results['drive'].items():
@@ -88,12 +88,12 @@ class DiffService:
                     continue
 
             self.logger.debug(
-                f"Total {len(diff['new']) - old_lengths['new']} new '{file_type}' files in 'local'")
-            old_lengths['new'] = len(diff['new'])
+                f"Found {len(diff['new']) - prev_diff_lengths['new']} new '{file_type}' files in 'drive'")
+            prev_diff_lengths['new'] = len(diff['new'])
 
             self.logger.debug(
-                f"Total {len(diff['modified']) - old_lengths['modified']} modified '{file_type}' files in 'local'")
-            old_lengths['modified'] = len(diff['modified'])
+                f"Found {len(diff['modified']) - prev_diff_lengths['modified']} modified '{file_type}' files in 'drive'")
+            prev_diff_lengths['modified'] = len(diff['modified'])
 
         self.logger.debug(
             f"Diff is: {len(diff['new'])} new files, {len(diff['modified'])} modified files, {len(diff['removed'])} removed files")

@@ -59,9 +59,10 @@ class GoogleDriveService:
                 # Download file
                 self.__download_file(file_data)
 
-        for diff_type, file_type in counter.items():
-            self.logger.debug(
-                f"Downloaded '{counter[file_type]}' '{diff_type}' '{file_type}' files")
+        for diff_type, file_types in counter.items():
+            for file_type, count in file_types.items():
+                self.logger.debug(
+                    f"Downloaded {count} '{diff_type}' '{file_type}' files")
 
     def __iterate_files(self, file_type: str):
         files_paths = {}
