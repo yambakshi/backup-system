@@ -5,23 +5,30 @@ import shutil
 import logging
 from googleapiclient.http import MediaIoBaseDownload
 from pathlib import Path
+from services.cache_service import CacheService
 from utils.google_drive import init_drive
 from config.config import CONFIG, GOOGLE_FILE_TYPES
 
 
 class GoogleDriveService:
-    def __init__(self, cache_service):
+    def __init__(self):
         self.logger = logging.getLogger('backup_system')
         self.drive = init_drive()
-        self.cache_service = cache_service
+        self.cache_service = CacheService()
 
-    def scan(self, load_cache: bool):
+    def scan(self):
         files_paths = {}
         for file_type, config in CONFIG['drive'].items():
-            if load_cache and os.path.isfile(f"caches/{config['cache_file']}"):
+            cache_file_path = f"caches/{config['cache_file']}"
+            if os.path.isfile(cache_file_path):
                 files_paths[file_type] = self.__load_cache(config)
             else:
                 files_paths[file_type] = self.__iterate_files(file_type)
+
+                self.logger.debug(
+                    f"Caching scan results in '{cache_file_path}'")
+                self.cache_service.cache(
+                    files_paths[file_type], cache_file_path)
 
         return files_paths
 
@@ -33,29 +40,28 @@ class GoogleDriveService:
             shutil.rmtree(r'tmp')
         os.mkdir('tmp')
 
+        counter = {}
         for diff_type, files_data in diff.items():
             if diff_type == 'removed':
                 continue
 
+            counter[diff_type] = {}
             for file_data in files_data:
                 # Skipping files that were removed or Non-Google types (Google Doc, Google Sheet etc.)
                 if not file_data['is_google_type']:
                     continue
 
+                if (file_data['type'] not in counter[diff_type]):
+                    counter[diff_type][file_data['type']] = 0
+
+                counter[diff_type][file_data['type']] += 1
+
                 # Download file
                 self.__download_file(file_data)
 
-        new_len = len(
-            list(filter(lambda file_data: file_data['is_google_type'], diff['new'])))
-        modified_len = len(
-            list(filter(lambda file_data: file_data['is_google_type'], diff['modified'])))
-        if new_len == 0 and modified_len == 0:
-            self.logger.debug(f"Nothing to download")
-        else:
-            if new_len > 0:
-                self.logger.debug(f"Downloaded {new_len} new files")
-            if modified_len > 0:
-                self.logger.debug(f"Downloaded {modified_len} modified files")
+        for diff_type, file_type in counter.items():
+            self.logger.debug(
+                f"Downloaded '{counter[file_type]}' '{diff_type}' '{file_type}' files")
 
     def __iterate_files(self, file_type: str):
         files_paths = {}
@@ -64,7 +70,7 @@ class GoogleDriveService:
         file_extension = CONFIG['drive'][file_type]['extension']
         search_file_type = CONFIG['drive'][file_type]['file_type']
         self.logger.debug(
-            f"Searching '{file_extension}' files on 'Google Drive'")
+            f"Scanning 'drive' ('Google Drive') for '{file_extension}' files...")
 
         # Iterate files
         while True:
@@ -78,7 +84,7 @@ class GoogleDriveService:
                 break
 
         self.logger.debug(
-            f"Found {len(files_paths)} '{file_extension}' files from 'Google Drive'")
+            f"Scanned {len(files_paths)} '{file_extension}' files in 'drive' ('Google Drive')")
         return files_paths
 
     def __search_drive(self, file_type: str, page_size: int, page_token):
@@ -174,8 +180,9 @@ class GoogleDriveService:
 
     def __load_cache(self, config: {}):
         self.logger.debug(
-            f"Loading '{config['extension']}' files from 'caches/{config['cache_file']}'")
-        cache_contents = self.cache_service.read(config['cache_file'])
+            f"Loading '{config['extension']}' files from scan results cache 'caches/{config['cache_file']}'")
+        cache_contents = self.cache_service.load(
+            f"caches/{config['cache_file']}")
         cache_lines = cache_contents.split('\n')[:-1]
         files_paths = {}
         for line in cache_lines:

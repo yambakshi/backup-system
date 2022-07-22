@@ -33,24 +33,26 @@ python -m venv env
    deactivate
    ```
 
-### 2. Requirements
-1. Before installing the requirements, make sure that the `env` virtual environment is activated (notice the `(env)` in the beginning):
+### 2. PIP Packages
+1. Before installing the `pip` packages, make sure that the `env` virtual environment is activated (notice the `(env)` in the beginning):
    ```
    (env) PS D:\Yam Bakshi\Careers\Hi-Tech\Portfolio\Python\Backup System >
    ```
-2. Install `requirements.txt` packages:
+2. Install `pip` packages:
    ```
    pip install -r requirements.txt
    ```
+   
+**Windows 10**
+- `pip` packages folders:
+   - Virtual Environment - `<repo_root>\env\Lib\site-packages`
+   - Global - `C:\Program Files\Python39\Lib\site-packages`
 
-**Useful Commands & Info**
+**Useful Commands**
 - Updating `requirements.txt` with currently installed `pip` packages (-l or --local flag to save only local packages and not global):
    ```
    pip freeze -l > requirements.txt
    ```
-- Windows 10 `pip` packages folders:
-   - Virtual Environment - `<repo_root>\env\Lib\site-packages`
-   - Global - `C:\Program Files\Python39\Lib\site-packages`
 
 
 ### 3. Google API Authentication
@@ -67,7 +69,7 @@ rm -rf ./authentication/token.pickle
 Set the virtual environment's interperter in `VSCode`:
 1. Hit `Ctrl`+`Shift`+`P`.
 2. Type `Python: Select Interpreter` and hit `Enter` to edit the setting.
-3. Select `Python 3.9.0 ('env':venv) '.\env\Scripts\python.exe`.
+3. Select `Python 3.9.0 ('env':venv) .\env\Scripts\python.exe`.
 
 ## Run
 ```
@@ -84,9 +86,9 @@ There are 2 flags you can pass to the Backup System:
 
 ### Spaces
 There are 3 spaces:
-- local - `D:/`
-- drive_stream - `G:/`
-- drive - `Google Drive`
+- **local** - `D:/`
+- **drive_stream** - `G:/`
+- **drive** - `Google Drive`
 
 ### Caches
 Scans are cached so that you won't have to scan all 3 spaces everytime you run the backup system.
@@ -94,13 +96,10 @@ Scans are cached so that you won't have to scan all 3 spaces everytime you run t
 If you want to use the cached scans in your next backup instead of re-scanning, simply set the `load_cache` member of the `backup_system` class to `True` (default is `False`).
 
 Each line in the cache file is a list of metadata values separated by `|` of a single scanned file:
-- file_path
-- last_modified
-- id (`drive` cache only - each `Google Drive` file has a unique ID)
-- is_google_type (`drive` cache only - `gsheet` and `gdoc` are google types but `pdf` is not)
-
-### Snapshots
-What are snapshots?
+- **file_path**
+- **last_modified**
+- **id** (`drive` cache only - each `Google Drive` file has a unique ID)
+- **is_google_type** (`drive` cache only - `gsheet` and `gdoc` are google types but `pdf` is not)
 
 ### Diff
 There are 3 diff types:
@@ -108,31 +107,44 @@ There are 3 diff types:
 - `modified` - Files that exist on the same paths both in `Google Drive` and in `D:/` but that their `last_modified` is different.
 - `removed` - Files that don't exist in `Google Drive` but exist in `D:/` in the same paths.
 
+> NOTE: If you move a file to a different folder or rename it, it will be marked as a `new` file and the original file path or file name will be marked as `removed`.
+
 ### File Types
 The Backup System currently supports 3 file types:
-- Google Doc
-- Google Sheet
-- PDF
+- **Google Doc**
+- **Google Sheet**
+- **PDF**
 
 ### Data Structure
-The `files_paths` data structure:
-- **space** (e.g `drive_stream`, `local`, `drive`)
-   - **file_type** (e.g `Google Doc`, `Google Sheet`, `PDF`)
-      - **file_path** (e.g _Car\Licenses\2020-2021.pdf_)
-         - id: **string** (`drive` only - each `Google Drive` file has a unique ID)
-         - last_modified: **number**
-         - is_google_type: **boolean** (`drive` only - `gsheet` and `gdoc` are google types but `pdf` is not)
+The `scan_results` data structure:
+- **space** (e.g. `drive_stream`, `local`, `drive`)
+   - **file_type** (e.g. `Google Doc`, `Google Sheet`, `PDF`)
+      - **file_path** (e.g. _Car\Licenses\2020-2021.pdf_)
+         - **last_modified**: _number_
+         - **id**: _string_ (`drive` only - each `Google Drive` file has a unique ID)
+         - **is_google_type**: _boolean_ (`drive` only - `gsheet` and `gdoc` are google types but `pdf` is not)
+
+### Delete Microsoft Office Temp Files
+1. Open `cmd` and `cd` to temp file folder.
+2. List hidden files:
+   ```
+   dir /a:h .
+   ```
+3. Delete hidden file:
+   ```
+   del /a:h "~$rtoons - Lyrics.docx"
+   ```
 
 ### Google Drive Backup
 When running the Backup System with the `--google-drive` flag, the backup system will:
-1. Scan all 3 spaces, or load the cached scans if `load_cache` is `True`.
-2. Compare the scans.
-3. Download `new` and `modified` files from `Google Drive` and save them in a `./tmp` folder under their correlating paths.
+1. Scan all 3 spaces, or load the cached scans if cache files exist.
+2. Compare `drive` scan to `local` scan.
+3. Download `new` and `modified` Google Type files only from `Google Drive` and save them in a `./tmp` folder under their correlating paths (the reason for only downloading Google type files is that any other file type is copied directly from `Google Drive` stream `G:/`)
 4. Merge the diff into the local `D:/` drive, as follows:
    - `new` - Moves the downloaded files from the `./tmp` folder to their destination folders.
    - `modified` - Moves the downloaded files from the `./tmp` folder to their destination folders replacing the old files.
    - `removed` - Deletes from the local `D:/` drive.
-5. Save snapshots of the current files state for future comparisons.
+5. Delete `tmp` folder
 
 ### Local Backup
 When running the Backup System with the `--local` flag, the backup system will:
