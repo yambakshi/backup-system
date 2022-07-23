@@ -33,6 +33,8 @@ class DiffService:
             local_ext = CONFIG['local'][file_type]['extension']
 
             # Iterating 'local' files
+            self.logger.debug(
+                f"Looking for removed '{file_type}' files in 'drive'...")
             for file_path, file_data in local_files_paths.items():
                 # Replace 'local' extension with 'drive' extension
                 drive_file_path = file_path.replace(local_ext, drive_ext)
@@ -61,6 +63,8 @@ class DiffService:
             local_ext = CONFIG['local'][file_type]['extension']
 
             # Iterating 'drive' files
+            self.logger.debug(
+                f"Looking for new and modified '{file_type}' files in 'drive'...")
             for file_path, file_data in drive_files_paths.items():
                 # Replace 'drive' extension with 'local' extension
                 local_file_path = file_path.replace(drive_ext, local_ext)
