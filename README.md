@@ -135,15 +135,19 @@ The `scan_results` data structure:
 
 ### Google Drive Backup
 When running the Backup System with the `--google-drive` flag, the backup system will:
+
 **1. Scan**
 
 Scan all 3 spaces, or load the cached scans if cache files exist.
+
 **2. Compare**
 
 Compare `drive` scan to `local` scan.
+
 **3. Download**
 
 Download `new` and `modified` Google Type files only from `Google Drive` and save them in a `./tmp` folder under their correlating paths (the reason for only downloading Google type files is that any other file type is copied directly from `Google Drive` stream `G:/`)
+
 **4. Merge**
 
 Merge the diff into the local `D:/` drive, as follows:
@@ -152,6 +156,7 @@ Merge the diff into the local `D:/` drive, as follows:
    - `removed` - Deletes from the local `D:/` drive.
 
 **5. Cleanup**
+
 Delete `tmp` folder
 
 ### Local Backup
